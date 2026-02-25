@@ -1,4 +1,5 @@
-import { testWrite } from "./services/firestore";
+import React from "react";
+import { testWrite } from "./lib/testWrite";
 
 function App() {
   return (
