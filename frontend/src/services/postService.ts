@@ -5,12 +5,26 @@ import {
   getDocs,
   serverTimestamp,
   query,
-  where
+  where,
+  deleteDoc,
+  doc,
+  updateDoc
 } from "firebase/firestore";
 
 export type Post = {
   title: string;
   content: string;
+};
+
+export const updatePost = async (
+  postId: string,
+  data: { title: string; content: string }
+) => {
+  await updateDoc(doc(db, "posts", postId), data);
+};
+
+export const deletePost = async (postId: string) => {
+  await deleteDoc(doc(db, "posts", postId));
 };
 
 export const createPost = async (data: Post) => {
