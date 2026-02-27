@@ -1,0 +1,45 @@
+body {
+  background: #f5f7fb;
+  font-family: system-ui, sans-serif;
+  margin: 0;
+}
+
+h1, h2, h3 {
+  margin-top: 0;
+}
+
+button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-right: 6px;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.post-card {
+  background: white;
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+.container {
+  max-width: 720px;
+  margin: auto;
+  padding: 24px;
+}

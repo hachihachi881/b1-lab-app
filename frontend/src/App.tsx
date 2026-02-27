@@ -5,6 +5,9 @@ import { useAuth } from "./hooks/useAuth";
 import { loginAndCreateUser } from "./services/authService";
 import { createPost, getMyPosts, getPosts } from "./services/postService";
 import { updatePost, deletePost } from "./services/postService";
+import { timeAgo } from "./lib/time";
+
+import "../index.css";
 
 function PostForm({ user, onPosted }: any) {
   const [title, setTitle] = useState("");
@@ -100,125 +103,158 @@ function App() {
 
   if (loading) return <p>読み込み中...</p>;
 
-  return (
-    <div>
-      <h1>Firestoreテスト</h1>
+    return (
+      <div style={{
+        background: "#f5f6f8",
+        minHeight: "100vh",
+        padding: "40px 20px",
+        fontFamily: "system-ui, sans-serif"
+      }}>
 
-      <button onClick={testWrite}>
-        Firebase書き込みテスト
-      </button>
-
-      <button onClick={testCreateUser}>
-        ユーザー作成テスト
-      </button>
-
-      <h1>研究室アプリ</h1>
+        <div style={{
+          maxWidth: 900,
+          margin: "0 auto"
+        }}>
+      
+      <h1 style={{ marginBottom: 20 }}>研究室アプリ</h1>
 
       {user ? (
-        <>
-          <p>ログイン中: {user.displayName}</p>
-        </>
+        <p>ログイン中: {user.displayName}</p>
       ) : (
         <button onClick={loginAndCreateUser}>
           Googleログイン
         </button>
       )}
 
-      {/* {user && (
-        <button onClick={() => testPost(user)}>
-          ユーザー付き投稿
-        </button>
-      )} */}
-
       {user && (
         <PostForm
           user={user}
-          onPosted={() => getMyPosts(user.uid).then(setMyPosts)}
+          onPosted={() => {
+            getPosts().then(setAllPosts);
+            getMyPosts(user.uid).then(setMyPosts);
+          }}
         />
       )}
 
-      {/* <h2>自分の投稿</h2>
-      {myPosts.map(p => (
-        <div key={p.id}>
+      {/* ===== 全投稿 ===== */}
+      <h2 style={{ marginTop: 40 }}>全投稿</h2>
+
+      {allPosts.map(p => (
+        <div key={p.id} style={cardStyle}>
           <h3>{p.title}</h3>
-          <p>{p.content}</p>
+          <p style={{ whiteSpace: "pre-wrap" }}>{p.content}</p>
+          <small style={{ color: "#666" }}>
+            by {p.authorName} ・{" "}
+            {p.createdAt?.toDate().toLocaleString()}
+          </small>
         </div>
       ))}
 
-      <h2>全投稿</h2>
-      {allPosts.map(p => (
-        <div key={p.id}>
-          <h3>{p.title}</h3>
-          <p>{p.content}</p>
-          <small>by {p.authorName}</small>
-        </div>
-      ))} */}
+      {/* ===== 自分の投稿 ===== */}
+      {user && (
+        <>
+          <h2 style={{ marginTop: 40 }}>自分の投稿</h2>
 
-      {myPosts.map(p => (
-        <div key={p.id} style={{ border: "1px solid #ccc", padding: 8, marginBottom: 8 }}>
-          
-          {editingId === p.id ? (
-            <>
-              <input
-                value={editTitle}
-                onChange={e => setEditTitle(e.target.value)}
-              />
-              <textarea
-                value={editContent}
-                onChange={e => setEditContent(e.target.value)}
-              />
-
-              <button
-                onClick={async () => {
-                  await updatePost(p.id, {
-                    title: editTitle,
-                    content: editContent
-                  });
-                  setEditingId(null);
-                  getMyPosts(user.uid).then(setMyPosts);
-                }}
-              >
-                保存
-              </button>
-
-              <button onClick={() => setEditingId(null)}>
-                キャンセル
-              </button>
-            </>
-          ) : (
-            <>
-              <h3>{p.title}</h3>
-              <p>{p.content}</p>
-
-              {user?.uid === p.uid && (
+          {myPosts.map(p => (
+            <div key={p.id} style={cardStyle}>
+              {editingId === p.id ? (
                 <>
-                  <button
-                    onClick={() => {
-                      setEditingId(p.id);
-                      setEditTitle(p.title);
-                      setEditContent(p.content);
-                    }}
-                  >
-                    編集
-                  </button>
+                  <input
+                    value={editTitle}
+                    onChange={e => setEditTitle(e.target.value)}
+                    style={inputStyle}
+                  />
+                  <textarea
+                    value={editContent}
+                    onChange={e => setEditContent(e.target.value)}
+                    style={textareaStyle}
+                  />
 
-                  <button
-                    onClick={async () => {
-                      await deletePost(p.id);
-                      getMyPosts(user.uid).then(setMyPosts);
-                    }}
-                  >
-                    削除
-                  </button>
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      onClick={async () => {
+                        await updatePost(p.id, {
+                          title: editTitle,
+                          content: editContent
+                        });
+                        setEditingId(null);
+                        getMyPosts(user.uid).then(setMyPosts);
+                        getPosts().then(setAllPosts);
+                      }}
+                    >
+                      保存
+                    </button>
+
+                    <button onClick={() => setEditingId(null)} style={{ marginLeft: 8 }}>
+                      キャンセル
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3>{p.title}</h3>
+                  <p style={{ whiteSpace: "pre-wrap" }}>{p.content}</p>
+
+                  <small style={{ color: "#666" }}>
+                    {p.createdAt && timeAgo(p.createdAt.toDate())}
+                  </small>
+
+                  <div style={{ marginTop: 10 }}>
+                    <button
+                      onClick={() => {
+                        setEditingId(p.id);
+                        setEditTitle(p.title);
+                        setEditContent(p.content);
+                      }}
+                    >
+                      編集
+                    </button>
+
+                    <button
+                      onClick={async () => {
+                        await deletePost(p.id);
+                        getMyPosts(user.uid).then(setMyPosts);
+                        getPosts().then(setAllPosts);
+                      }}
+                      style={{ marginLeft: 8 }}
+                    >
+                      削除
+                    </button>
+                  </div>
                 </>
               )}
-            </>
-          )}
-        </div>
-      ))}
-
+            </div>
+          ))}
+        </>
+      )}
     </div>
+    </div>
+
   );
 }
+
+/* ===== スタイル ===== */
+
+const cardStyle: React.CSSProperties = {
+  background: "#fff",
+  borderRadius: 12,
+  padding: 20,
+  marginTop: 12,
+  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+  border: "1px solid #eee"
+};
+
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: 8,
+  fontSize: 16,
+  marginBottom: 8
+};
+
+const textareaStyle: React.CSSProperties = {
+  width: "100%",
+  padding: 8,
+  minHeight: 80
+};
 
 export default App;

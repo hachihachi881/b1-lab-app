@@ -8,7 +8,8 @@ import {
   where,
   deleteDoc,
   doc,
-  updateDoc
+  updateDoc,
+  orderBy
 } from "firebase/firestore";
 
 export type Post = {
@@ -27,15 +28,20 @@ export const deletePost = async (postId: string) => {
   await deleteDoc(doc(db, "posts", postId));
 };
 
-export const createPost = async (data: Post) => {
+export const createPost = async (post: any) => {
   await addDoc(collection(db, "posts"), {
-    ...data,
+    ...post,
     createdAt: serverTimestamp()
   });
 };
 
 export const getPosts = async () => {
-  const snap = await getDocs(collection(db, "posts"));
+  const q = query(
+    collection(db, "posts"),
+    orderBy("createdAt", "desc")
+  );
+
+  const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 };
 
@@ -46,7 +52,9 @@ export const getMyPosts = async (uid: string) => {
   );
 
   const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return snap.docs
+  .map(d => ({ id: d.id, ...d.data() }))
+  .filter(p => p.uid === uid);
 };
 
 export type Post = {
