@@ -1,45 +1,180 @@
 body {
-  background: #f5f7fb;
-  font-family: system-ui, sans-serif;
+  background: #f4f6f9; /* 背景色を少し落ち着いたグレーに */
+  font-family: "Helvetica Neue", Arial, "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif;
+  margin: 0;
+  color: #333;
+}
+
+h1, h2, h3, p {
   margin: 0;
 }
 
-h1, h2, h3 {
-  margin-top: 0;
-}
-
 button {
-  background: #2563eb;
+  background: #3b82f6;
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
   cursor: pointer;
-  margin-right: 6px;
+  font-weight: bold;
+  transition: background 0.2s;
 }
 
 button:hover {
-  background: #1d4ed8;
+  background: #2563eb;
 }
 
-input, textarea {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  margin-bottom: 8px;
+/* ナビゲーションバー */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  padding: 12px 24px;
+  border-bottom: 1px solid #e5e7eb;
 }
 
-.post-card {
+.nav-links {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+
+.nav-item {
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.nav-item.active {
+  color: #3b82f6;
+}
+
+.weather-widget {
+  background: #f3f4f6;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  color: #4b5563;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* メインレイアウト */
+.dashboard-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 24px;
+}
+
+.header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.content-grid {
+  display: flex;
+  gap: 24px;
+}
+
+.main-content {
+  flex: 1;
+}
+
+.sidebar {
+  width: 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* カード共通 */
+.card {
   background: white;
   border-radius: 12px;
-  padding: 14px;
-  margin-bottom: 14px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  border: 1px solid #e5e7eb;
 }
 
-.container {
-  max-width: 720px;
-  margin: auto;
-  padding: 24px;
+.card-blue {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+}
+
+/* カレンダー */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1px;
+  background: #e5e7eb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.calendar-cell {
+  background: white;
+  min-height: 100px;
+  padding: 8px;
+  font-size: 14px;
+}
+
+.calendar-cell.header {
+  min-height: auto;
+  text-align: center;
+  padding: 12px 8px;
+  font-weight: bold;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.calendar-cell.other-month {
+  background: #f9fafb;
+  color: #9ca3af;
+}
+
+.event-label {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-top: 4px;
+  color: white;
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.event-green { background: #10b981; }
+.event-blue { background: #3b82f6; }
+
+/* タグ（メンバー一覧など） */
+.tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tag {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
 }

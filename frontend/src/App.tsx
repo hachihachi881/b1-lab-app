@@ -1,260 +1,344 @@
 import React, { useState, useEffect } from "react";
-import { testWrite } from "./lib/testWrite";
-import { createUser } from "./services/usersService";
 import { useAuth } from "./hooks/useAuth";
 import { loginAndCreateUser } from "./services/authService";
-import { createPost, getMyPosts, getPosts } from "./services/postService";
-import { updatePost, deletePost } from "./services/postService";
-import { timeAgo } from "./lib/time";
-
+import { createPost, getPosts, updatePost, deletePost } from "./services/postService";
+// ▼ 新しく作成したサービスをインポート
+import { getTeaPartyInfo, saveTeaPartyInfo } from "./services/teaPartyService";
 import "../index.css";
 
-function PostForm({ user, onPosted }: any) {
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
-  const [loading, setLoading] = useState(false);
+// --- ナビゲーション ---
+function Navbar() {
+  return (
+    <nav className="navbar">
+      <div className="nav-links">
+        <h2 style={{ color: "#3b82f6", marginRight: 24 }}>🧪 B1LabApp</h2>
+        <a href="#" className="nav-item active">ダッシュボード</a>
+        <a href="#" className="nav-item">発表スケジューラー</a>
+        <a href="#" className="nav-item">お茶会ブログ</a>
+        <a href="#" className="nav-item">設定</a>
+      </div>
+      <div className="nav-links">
+        <div className="weather-widget">
+          <span>☁️ 13℃ 徳島</span>
+          <span style={{ marginLeft: 12, borderLeft: "1px solid #ccc", paddingLeft: 12 }}>2月28日(土) 14:09</span>
+        </div>
+      </div>
+    </nav>
+  );
+}
 
-  const handleSubmit = async () => {
-    if (!title || !content) {
-      alert("タイトルと本文を入力してね");
-      return;
-    }
+// --- カレンダー ---
+function Calendar({ posts, onEventClick }: { posts: any[], onEventClick: (post: any) => void }) {
+  const daysOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+  const [currentDate, setCurrentDate] = useState(new Date());
 
-    setLoading(true);
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
 
-    await createPost({
-      title,
-      content,
-      uid: user.uid,
-      authorName: user.displayName ?? "unknown"
-    });
+  const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
+  const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
-    setTitle("");
-    setContent("");
-    setLoading(false);
+  const firstDayOfMonth = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const daysInPrevMonth = new Date(year, month, 0).getDate();
 
-    onPosted(); // 投稿後に再取得
+  const days = [];
+  
+  for (let i = firstDayOfMonth - 1; i >= 0; i--) {
+    days.push({ date: daysInPrevMonth - i, isCurrentMonth: false, year: month === 0 ? year - 1 : year, month: month === 0 ? 12 : month });
+  }
+  
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push({ date: i, isCurrentMonth: true, year: year, month: month + 1 });
+  }
+  
+  const totalCells = days.length <= 35 ? 35 : 42;
+  const remaining = totalCells - days.length;
+  for (let i = 1; i <= remaining; i++) {
+    days.push({ date: i, isCurrentMonth: false, year: month === 11 ? year + 1 : year, month: month === 11 ? 1 : month + 2 });
+  }
+
+  const today = new Date();
+  const isToday = (dYear: number, dMonth: number, dDate: number) => {
+    return today.getFullYear() === dYear && (today.getMonth() + 1) === dMonth && today.getDate() === dDate;
   };
 
   return (
-    <div style={{ border: "1px solid #ccc", padding: 16, marginTop: 16 }}>
-      <h3>投稿フォーム</h3>
+    <div className="card" style={{ padding: 0 }}>
+      <div className="calendar-header" style={{ padding: "24px 24px 0" }}>
+        <h2 style={{ fontSize: "20px" }}>{year}年{month + 1}月</h2>
+        <div>
+          <button onClick={handlePrevMonth} style={{ background: "white", color: "#333", border: "1px solid #ddd", marginRight: 8, padding: "4px 12px" }}>&lt;</button>
+          <button onClick={handleNextMonth} style={{ background: "white", color: "#333", border: "1px solid #ddd", padding: "4px 12px" }}>&gt;</button>
+        </div>
+      </div>
+      
+      <div style={{ padding: 24 }}>
+        <div className="calendar-grid">
+          {daysOfWeek.map(day => (
+            <div key={day} className="calendar-cell header">{day}</div>
+          ))}
+          
+          {days.map((day, idx) => {
+            const dateString = `${day.year}-${String(day.month).padStart(2, '0')}-${String(day.date).padStart(2, '0')}`;
+            const dayPosts = posts.filter(p => p.date === dateString);
+            const currentIsToday = isToday(day.year, day.month, day.date);
 
-      <input
-        placeholder="タイトル"
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        style={{ width: "100%", marginBottom: 8 }}
-      />
-
-      <textarea
-        placeholder="本文"
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        style={{ width: "100%", height: 80, marginBottom: 8 }}
-      />
-
-      <button onClick={handleSubmit} disabled={loading}>
-        {loading ? "投稿中..." : "投稿する"}
-      </button>
+            return (
+              <div key={idx} className={`calendar-cell ${!day.isCurrentMonth ? 'other-month' : ''}`}>
+                <div style={{ 
+                  width: 24, height: 24, borderRadius: "50%", 
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: currentIsToday ? "#3b82f6" : "transparent",
+                  color: currentIsToday ? "white" : "inherit",
+                  fontWeight: currentIsToday ? "bold" : "normal"
+                }}>
+                  {day.date}
+                </div>
+                
+                {dayPosts.map(post => {
+                  const colorClass = post.title.includes('お茶会') ? 'event-blue' : 'event-green';
+                  return (
+                    <div 
+                      key={post.id} 
+                      className={`event-label ${colorClass}`} 
+                      style={{ width: "100%", boxSizing: "border-box", cursor: "pointer" }}
+                      onClick={() => onEventClick(post)}
+                    >
+                      {post.title}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
 
-const testCreateUser = async () => {
-  await createUser("test-user-001", {
-    name: "テスト太郎",
-    email: "test@example.com",
-    role: "student"
-  });
+// --- サイドバー ---
+function Sidebar({ nextTeaParty, onEditTeaParty }: any) {
+  return (
+    <div className="sidebar">
+      <div className="card card-blue" style={{ position: "relative" }}>
+        <button 
+          onClick={onEditTeaParty}
+          style={{ position: "absolute", top: 16, right: 16, background: "rgba(255, 255, 255, 0.2)", padding: "4px 10px", fontSize: 12, borderRadius: 20 }}
+        >
+          ✏️ 編集
+        </button>
 
-  alert("ユーザー作成成功");
-};
+        <p style={{ fontSize: 14, marginBottom: 8 }}>🔔 次のお茶会</p>
+        <h2 style={{ fontSize: 24, marginBottom: 8 }}>{nextTeaParty.title}</h2>
+        <p style={{ fontSize: 13, opacity: 0.9 }}>{nextTeaParty.datetime} | {nextTeaParty.location}</p>
+        <p style={{ fontSize: 13, marginTop: 16, fontWeight: "bold" }}>担当グループ: {nextTeaParty.group}</p>
+      </div>
 
-const testPost = async (user:any) => {
-  await createPost({
-    title: "ユーザー付き投稿",
-    content: "ログインユーザーから投稿",
-    uid: user.uid,
-    authorName: user.displayName ?? "unknown"
-  });
+      <div className="card">
+        <h3 style={{ fontSize: 16, borderBottom: "1px solid #eee", paddingBottom: 12, marginBottom: 12 }}>👥 グループ構成</h3>
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 14, fontWeight: "bold", display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#f97316" }}></span>
+              グループA
+            </span>
+            <span style={{ fontSize: 12, background: "#f3f4f6", padding: "2px 8px", borderRadius: 12 }}>10名</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  alert("投稿成功");
-};
-
+// --- メイン ---
 function App() {
   const { user, loading } = useAuth();
-
-  const [myPosts, setMyPosts] = useState<any[]>([]);
   const [allPosts, setAllPosts] = useState<any[]>([]);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editTitle, setEditTitle] = useState("");
-  const [editContent, setEditContent] = useState("");
 
-  useEffect(() => {
-    if (user) {
-      getMyPosts(user.uid).then(setMyPosts);
-    }
-  }, [user]);
+  // 初期値（Firebaseからデータが取れるまでの仮表示）
+  const [nextTeaParty, setNextTeaParty] = useState({
+    title: "読込中...",
+    datetime: "-",
+    location: "-",
+    group: "-"
+  });
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editId, setEditId] = useState<string | null>(null);
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [content, setContent] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isTeaPartyModalOpen, setIsTeaPartyModalOpen] = useState(false);
+  const [tpTitle, setTpTitle] = useState("");
+  const [tpDatetime, setTpDatetime] = useState("");
+  const [tpLocation, setTpLocation] = useState("");
+  const [tpGroup, setTpGroup] = useState("");
+  const [isTpSubmitting, setIsTpSubmitting] = useState(false);
+
+  // ▼ 初回レンダリング時に予定とお茶会データをFirebaseから取得
   useEffect(() => {
     getPosts().then(setAllPosts);
+
+    getTeaPartyInfo().then(data => {
+      if (data) {
+        setNextTeaParty(data);
+      } else {
+        // データが存在しない場合の初期値
+        setNextTeaParty({
+          title: "第18回 お茶会",
+          datetime: "2026年2月27日 (金) 15:00〜",
+          location: "4F 輪講室",
+          group: "グループB (カフェモカ)"
+        });
+      }
+    });
   }, []);
+
+  const handleOpenAdd = () => { setEditId(null); setTitle(""); setDate(""); setContent(""); setIsModalOpen(true); };
+  const handleOpenEdit = (post: any) => { setEditId(post.id); setTitle(post.title); setDate(post.date || ""); setContent(post.content || ""); setIsModalOpen(true); };
+
+  const handleSaveSchedule = async () => {
+    if (!title || !date) return alert("タイトルと日付を入力してください");
+    setIsSubmitting(true);
+    if (editId) {
+      await updatePost(editId, { title, content, date });
+    } else {
+      await createPost({ title, content, date, uid: user?.uid, authorName: user?.displayName ?? "unknown" });
+    }
+    setIsSubmitting(false); setIsModalOpen(false);
+    getPosts().then(setAllPosts);
+  };
+
+  const handleDeleteSchedule = async () => {
+    if (!editId) return;
+    if (!window.confirm("この予定を削除してもよろしいですか？")) return;
+    setIsSubmitting(true);
+    await deletePost(editId);
+    setIsSubmitting(false); setIsModalOpen(false);
+    getPosts().then(setAllPosts);
+  };
+
+  const handleOpenTeaPartyEdit = () => {
+    setTpTitle(nextTeaParty.title);
+    setTpDatetime(nextTeaParty.datetime);
+    setTpLocation(nextTeaParty.location);
+    setTpGroup(nextTeaParty.group);
+    setIsTeaPartyModalOpen(true);
+  };
+
+// ▼ お茶会データの保存処理（Firebaseに保存）
+  const handleSaveTeaParty = async () => {
+    setIsTpSubmitting(true);
+    const newData = {
+      title: tpTitle,
+      datetime: tpDatetime,
+      location: tpLocation,
+      group: tpGroup
+    };
+
+    try {
+      // Firebaseに保存
+      await saveTeaPartyInfo(newData);
+
+      // 画面のStateを更新
+      setNextTeaParty(newData);
+      setIsTeaPartyModalOpen(false);
+    } catch (error) {
+      console.error("お茶会データの保存エラー:", error);
+      alert("保存に失敗しました。開発者ツールのConsoleを確認してください。");
+    } finally {
+      // 成功しても失敗しても「更新中...」を解除する
+      setIsTpSubmitting(false);
+    }
+  };
+
 
   if (loading) return <p>読み込み中...</p>;
 
-    return (
-      <div style={{
-        background: "#f5f6f8",
-        minHeight: "100vh",
-        padding: "40px 20px",
-        fontFamily: "system-ui, sans-serif"
-      }}>
-
-        <div style={{
-          maxWidth: 900,
-          margin: "0 auto"
-        }}>
-      
-      <h1 style={{ marginBottom: 20 }}>研究室アプリ</h1>
-
-      {user ? (
-        <p>ログイン中: {user.displayName}</p>
-      ) : (
-        <button onClick={loginAndCreateUser}>
-          Googleログイン
-        </button>
-      )}
-
-      {user && (
-        <PostForm
-          user={user}
-          onPosted={() => {
-            getPosts().then(setAllPosts);
-            getMyPosts(user.uid).then(setMyPosts);
-          }}
-        />
-      )}
-
-      {/* ===== 全投稿 ===== */}
-      <h2 style={{ marginTop: 40 }}>全投稿</h2>
-
-      {allPosts.map(p => (
-        <div key={p.id} style={cardStyle}>
-          <h3>{p.title}</h3>
-          <p style={{ whiteSpace: "pre-wrap" }}>{p.content}</p>
-          <small style={{ color: "#666" }}>
-            by {p.authorName} ・{" "}
-            {p.createdAt?.toDate().toLocaleString()}
-          </small>
+  return (
+    <div>
+      <Navbar />
+      <div className="dashboard-container">
+        <div className="header-actions">
+          <div>
+            <h1 style={{ fontSize: 24, marginBottom: 4 }}>ダッシュボード</h1>
+            <p style={{ color: "#6b7280", fontSize: 14 }}>研究室スケジュールの一元管理</p>
+          </div>
+          <div style={{ display: "flex", gap: 12 }}>
+            {user ? (
+              <>
+                <div style={{ display: "flex", alignItems: "center", marginRight: 16, fontSize: 14 }}>👤 {user.displayName}</div>
+                <button onClick={handleOpenAdd}>＋ 予定を追加</button>
+              </>
+            ) : (
+              <button onClick={loginAndCreateUser} style={{ background: "#10b981" }}>Googleログイン</button>
+            )}
+          </div>
         </div>
-      ))}
 
-      {/* ===== 自分の投稿 ===== */}
-      {user && (
-        <>
-          <h2 style={{ marginTop: 40 }}>自分の投稿</h2>
+        <div className="content-grid">
+          <div className="main-content">
+            <Calendar posts={allPosts} onEventClick={handleOpenEdit} />
+          </div>
+          <Sidebar nextTeaParty={nextTeaParty} onEditTeaParty={handleOpenTeaPartyEdit} />
+        </div>
+      </div>
 
-          {myPosts.map(p => (
-            <div key={p.id} style={cardStyle}>
-              {editingId === p.id ? (
-                <>
-                  <input
-                    value={editTitle}
-                    onChange={e => setEditTitle(e.target.value)}
-                    style={inputStyle}
-                  />
-                  <textarea
-                    value={editContent}
-                    onChange={e => setEditContent(e.target.value)}
-                    style={textareaStyle}
-                  />
-
-                  <div style={{ marginTop: 10 }}>
-                    <button
-                      onClick={async () => {
-                        await updatePost(p.id, {
-                          title: editTitle,
-                          content: editContent
-                        });
-                        setEditingId(null);
-                        getMyPosts(user.uid).then(setMyPosts);
-                        getPosts().then(setAllPosts);
-                      }}
-                    >
-                      保存
-                    </button>
-
-                    <button onClick={() => setEditingId(null)} style={{ marginLeft: 8 }}>
-                      キャンセル
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <h3>{p.title}</h3>
-                  <p style={{ whiteSpace: "pre-wrap" }}>{p.content}</p>
-
-                  <small style={{ color: "#666" }}>
-                    {p.createdAt && timeAgo(p.createdAt.toDate())}
-                  </small>
-
-                  <div style={{ marginTop: 10 }}>
-                    <button
-                      onClick={() => {
-                        setEditingId(p.id);
-                        setEditTitle(p.title);
-                        setEditContent(p.content);
-                      }}
-                    >
-                      編集
-                    </button>
-
-                    <button
-                      onClick={async () => {
-                        await deletePost(p.id);
-                        getMyPosts(user.uid).then(setMyPosts);
-                        getPosts().then(setAllPosts);
-                      }}
-                      style={{ marginLeft: 8 }}
-                    >
-                      削除
-                    </button>
-                  </div>
-                </>
-              )}
+      {isModalOpen && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <h3 style={{ marginBottom: 16 }}>{editId ? "予定を編集" : "新しい予定を追加"}</h3>
+            <label style={labelStyle}>タイトル</label>
+            <input style={inputStyle} value={title} onChange={e => setTitle(e.target.value)} />
+            <label style={labelStyle}>日付</label>
+            <input type="date" style={inputStyle} value={date} onChange={e => setDate(e.target.value)} />
+            <label style={labelStyle}>詳細 (任意)</label>
+            <textarea style={{ ...inputStyle, height: 80 }} value={content} onChange={e => setContent(e.target.value)} />
+            <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16 }}>
+              <div>
+                {editId && <button onClick={handleDeleteSchedule} disabled={isSubmitting} style={{ background: "#ef4444", color: "white" }}>削除</button>}
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <button onClick={() => setIsModalOpen(false)} style={{ background: "white", color: "#666", border: "1px solid #ccc" }}>キャンセル</button>
+                <button onClick={handleSaveSchedule} disabled={isSubmitting}>{isSubmitting ? "保存中..." : "保存する"}</button>
+              </div>
             </div>
-          ))}
-        </>
+          </div>
+        </div>
+      )}
+
+      {isTeaPartyModalOpen && (
+        <div style={modalOverlayStyle}>
+          <div style={modalContentStyle}>
+            <h3 style={{ marginBottom: 16 }}>「次のお茶会」を編集</h3>
+            <label style={labelStyle}>タイトル</label>
+            <input style={inputStyle} value={tpTitle} onChange={e => setTpTitle(e.target.value)} />
+            <label style={labelStyle}>日時</label>
+            <input style={inputStyle} value={tpDatetime} onChange={e => setTpDatetime(e.target.value)} />
+            <label style={labelStyle}>場所</label>
+            <input style={inputStyle} value={tpLocation} onChange={e => setTpLocation(e.target.value)} />
+            <label style={labelStyle}>担当グループ</label>
+            <input style={inputStyle} value={tpGroup} onChange={e => setTpGroup(e.target.value)} />
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 }}>
+              <button onClick={() => setIsTeaPartyModalOpen(false)} style={{ background: "white", color: "#666", border: "1px solid #ccc" }}>キャンセル</button>
+              <button onClick={handleSaveTeaParty} disabled={isTpSubmitting}>
+                {isTpSubmitting ? "更新中..." : "更新する"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
-    </div>
-
   );
 }
 
-/* ===== スタイル ===== */
-
-const cardStyle: React.CSSProperties = {
-  background: "#fff",
-  borderRadius: 12,
-  padding: 20,
-  marginTop: 12,
-  boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-  border: "1px solid #eee"
-};
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  padding: 8,
-  fontSize: 16,
-  marginBottom: 8
-};
-
-const textareaStyle: React.CSSProperties = {
-  width: "100%",
-  padding: 8,
-  minHeight: 80
-};
+const modalOverlayStyle: React.CSSProperties = { position: "fixed", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 };
+const modalContentStyle: React.CSSProperties = { background: "white", padding: 24, borderRadius: 12, width: "100%", maxWidth: 400, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" };
+const labelStyle: React.CSSProperties = { display: "block", fontSize: 13, fontWeight: "bold", color: "#4b5563", marginBottom: 4 };
+const inputStyle: React.CSSProperties = { width: "100%", padding: 8, border: "1px solid #d1d5db", borderRadius: 6, marginBottom: 16, boxSizing: "border-box" };
 
 export default App;
