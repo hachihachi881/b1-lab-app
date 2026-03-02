@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
-import { loginAndCreateUser } from "./services/authService";
 import { createPost, getPosts, updatePost, deletePost } from "./services/postService";
-// ▼ 新しく作成したサービスをインポート
 import { getTeaPartyInfo, saveTeaPartyInfo } from "./services/teaPartyService";
+import { signOut } from "firebase/auth";
+import { auth } from "./lib/firebase";
+import LoginForm from "./utils/LoginForm";
 import "../index.css";
+
+// await signOut(auth);
 
 // --- ナビゲーション ---
 function Navbar() {
@@ -181,13 +184,14 @@ function App() {
 
   // ▼ 初回レンダリング時に予定とお茶会データをFirebaseから取得
   useEffect(() => {
+    if (!user) return;
+
     getPosts().then(setAllPosts);
 
     getTeaPartyInfo().then(data => {
       if (data) {
         setNextTeaParty(data);
       } else {
-        // データが存在しない場合の初期値
         setNextTeaParty({
           title: "第18回 お茶会",
           datetime: "2026年2月27日 (金) 15:00〜",
@@ -196,7 +200,8 @@ function App() {
         });
       }
     });
-  }, []);
+
+  }, [user]);
 
   const handleOpenAdd = () => { setEditId(null); setTitle(""); setDate(""); setContent(""); setIsModalOpen(true); };
   const handleOpenEdit = (post: any) => { setEditId(post.id); setTitle(post.title); setDate(post.date || ""); setContent(post.content || ""); setIsModalOpen(true); };
@@ -269,15 +274,27 @@ function App() {
             <p style={{ color: "#6b7280", fontSize: 14 }}>研究室スケジュールの一元管理</p>
           </div>
           <div style={{ display: "flex", gap: 12 }}>
-            {user ? (
-              <>
-                <div style={{ display: "flex", alignItems: "center", marginRight: 16, fontSize: 14 }}>👤 {user.displayName}</div>
-                <button onClick={handleOpenAdd}>＋ 予定を追加</button>
-              </>
-            ) : (
-              <button onClick={loginAndCreateUser} style={{ background: "#10b981" }}>Googleログイン</button>
-            )}
-          </div>
+          {user ? (
+            <>
+              <div style={{ display: "flex", alignItems: "center", marginRight: 16, fontSize: 14 }}>
+                👤 {user.displayName}
+              </div>
+
+              <button onClick={handleOpenAdd}>
+                ＋ 予定を追加
+              </button>
+
+              <button
+                onClick={() => signOut(auth)}
+                style={{ background: "#ef4444" }}
+              >
+                ログアウト
+              </button>
+            </>
+          ) : (
+            <LoginForm />
+          )}
+        </div>
         </div>
 
         <div className="content-grid">

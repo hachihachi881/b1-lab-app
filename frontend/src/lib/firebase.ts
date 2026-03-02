@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 
-const firebaseConfig = {
+const firebaseConfig = {  //Firebaseの設定情報。環境変数から取得する
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
@@ -11,10 +11,10 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);  //Firebaseアプリを初期化する
 
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+export const db = getFirestore(app);  //Firestoreのインスタンスを取得する
+export const auth = getAuth(app);  //Authのインスタンスを取得する
 
 if (location.hostname === "localhost") {
   // connectFirestoreEmulator(db, "localhost", 8080);

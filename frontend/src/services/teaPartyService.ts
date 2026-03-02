@@ -1,5 +1,5 @@
 // src/services/teaPartyService.ts
-import { db } from "../lib/firebase"; // ※パスはご自身の環境(lib/firebaseなど)に合わせてください
+import { db } from "../lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export type TeaPartyInfo = {

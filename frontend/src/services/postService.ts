@@ -17,25 +17,25 @@ export type Post = {
   content: string;
 };
 
-export const updatePost = async (
+export const updatePost = async (  //投稿を更新する関数。引数には投稿のIDと更新するデータを渡す
   postId: string,
   data: { title: string; content: string }
 ) => {
   await updateDoc(doc(db, "posts", postId), data);
 };
 
-export const deletePost = async (postId: string) => {
+export const deletePost = async (postId: string) => {  //投稿を削除する関数。引数には投稿のIDを渡す
   await deleteDoc(doc(db, "posts", postId));
 };
 
-export const createPost = async (post: any) => {
+export const createPost = async (post: any) => {  //投稿を作成する関数。引数には投稿のデータを渡す
   await addDoc(collection(db, "posts"), {
     ...post,
     createdAt: serverTimestamp()
   });
 };
 
-export const getPosts = async () => {
+export const getPosts = async () => {  //投稿を取得する関数。投稿のデータを配列で返す
   const q = query(
     collection(db, "posts"),
     orderBy("createdAt", "desc")
@@ -45,7 +45,7 @@ export const getPosts = async () => {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 };
 
-export const getMyPosts = async (uid: string) => {
+export const getMyPosts = async (uid: string) => {  //自分の投稿を取得する関数。引数にはユーザのIDを渡す。投稿のデータを配列で返す
   const q = query(
     collection(db, "posts"),
     where("uid", "==", uid)
