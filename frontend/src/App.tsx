@@ -13,6 +13,8 @@ import AppLayout from "./layouts/AppLayout";
 import Container from "./layouts/Container";
 import { Calendar, Sidebar, ScheduleModal, TeaPartyModal } from "./components/dashboard";
 import { Button, Typography, Spacing } from "./components/common";
+import "./styles/variables.css";
+import "./styles/layout.css";
 import "../index.css";
 
 // await signOut(auth);

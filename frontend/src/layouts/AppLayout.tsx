@@ -1,4 +1,5 @@
 import React, { ReactNode } from "react";
+import Button from "../components/common/Button";
 
 interface AppLayoutProps {
     children: ReactNode;
@@ -27,59 +28,56 @@ function Navbar({
 }) {
     return (
         <nav className="navbar">
-            <div className="nav-links">
-                <h2 style={{ color: "#3b82f6", marginRight: 24 }}>🧪 B1LabApp</h2>
+            <div className="navbar__links">
+                <h2 className="navbar__brand">🧪 B1LabApp</h2>
                 <a
                     href="#"
-                    className={`nav-item ${currentPage === 'dashboard' ? 'active' : ''}`}
+                    className={`navbar__item ${currentPage === 'dashboard' ? 'navbar__item--active' : ''}`}
                     onClick={(e) => { e.preventDefault(); onNavigate?.('dashboard'); }}
                 >
                     ダッシュボード
                 </a>
                 <a
                     href="#"
-                    className={`nav-item ${currentPage === 'presentation' ? 'active' : ''}`}
+                    className={`navbar__item ${currentPage === 'presentation' ? 'navbar__item--active' : ''}`}
                     onClick={(e) => { e.preventDefault(); onNavigate?.('presentation'); }}
                 >
                     発表スケジューラー
                 </a>
                 <a
                     href="#"
-                    className={`nav-item ${currentPage === 'events' ? 'active' : ''}`}
+                    className={`navbar__item ${currentPage === 'events' ? 'navbar__item--active' : ''}`}
                     onClick={(e) => { e.preventDefault(); onNavigate?.('events'); }}
                 >
                     イベント
                 </a>
                 <a
                     href="#"
-                    className={`nav-item ${currentPage === 'blog' ? 'active' : ''}`}
+                    className={`navbar__item ${currentPage === 'blog' ? 'navbar__item--active' : ''}`}
                     onClick={(e) => { e.preventDefault(); onNavigate?.('blog'); }}
                 >
                     お茶会ブログ
                 </a>
                 <a
                     href="#"
-                    className={`nav-item ${currentPage === 'settings' ? 'active' : ''}`}
+                    className={`navbar__item ${currentPage === 'settings' ? 'navbar__item--active' : ''}`}
                     onClick={(e) => { e.preventDefault(); onNavigate?.('settings'); }}
                 >
                     設定
                 </a>
             </div>
-            <div className="nav-links">
+            <div className="navbar__links">
                 {user && isAdmin && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-                        <div style={{ display: "flex", alignItems: "center", fontSize: 14 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
+                        <div style={{ display: "flex", alignItems: "center", fontSize: "var(--font-size-sm)" }}>
                             👤 {user.email}
                         </div>
-                        <button onClick={onAddSchedule}>
+                        <Button onClick={onAddSchedule} variant="primary" size="sm">
                             ＋ 予定を追加
-                        </button>
-                        <button
-                            onClick={onSignOut}
-                            style={{ background: "#ef4444" }}
-                        >
+                        </Button>
+                        <Button onClick={onSignOut} variant="danger" size="sm">
                             ログアウト
-                        </button>
+                        </Button>
                     </div>
                 )}
                 <div className="weather-widget">
@@ -112,9 +110,9 @@ export default function AppLayout({
                 onAddSchedule={onAddSchedule}
                 onSignOut={onSignOut}
             />
-            <div style={{ background: "#f4f6f9", minHeight: "calc(100vh - 60px)" }}>
+            <main className="page-container" style={{ minHeight: "calc(100vh - 60px)" }}>
                 {children}
-            </div>
+            </main>
         </div>
     );
 }
