@@ -2,23 +2,58 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
 import { createPost, getPosts, updatePost, deletePost } from "./services/postService";
 import { getTeaPartyInfo, saveTeaPartyInfo } from "./services/teaPartyService";
+import { isAdmin } from "./services/adminService";
 import { signOut } from "firebase/auth";
 import { auth } from "./lib/firebase";
-import LoginForm from "./utils/LoginForm";
+import Settings from "./Settings";
+import PresentationScheduler from "./PresentationScheduler";
+import Events from "./Events";
+import TeaPartyBlog from "./TeaPartyBlog";
 import "../index.css";
 
 // await signOut(auth);
 
 // --- ナビゲーション ---
-function Navbar() {
+function Navbar({ currentPage, onNavigate }: { currentPage: string; onNavigate: (page: string) => void }) {
   return (
     <nav className="navbar">
       <div className="nav-links">
         <h2 style={{ color: "#3b82f6", marginRight: 24 }}>🧪 B1LabApp</h2>
-        <a href="#" className="nav-item active">ダッシュボード</a>
-        <a href="#" className="nav-item">発表スケジューラー</a>
-        <a href="#" className="nav-item">お茶会ブログ</a>
-        <a href="#" className="nav-item">設定</a>
+        <a 
+          href="#" 
+          className={`nav-item ${currentPage === 'dashboard' ? 'active' : ''}`}
+          onClick={(e) => { e.preventDefault(); onNavigate('dashboard'); }}
+        >
+          ダッシュボード
+        </a>
+        <a 
+          href="#" 
+          className={`nav-item ${currentPage === 'presentation' ? 'active' : ''}`}
+          onClick={(e) => { e.preventDefault(); onNavigate('presentation'); }}
+        >
+          発表スケジューラー
+        </a>
+        <a 
+          href="#" 
+          className={`nav-item ${currentPage === 'events' ? 'active' : ''}`}
+          onClick={(e) => { e.preventDefault(); onNavigate('events'); }}
+        >
+          イベント
+        </a>
+        <a 
+          href="#" 
+          className={`nav-item ${currentPage === 'blog' ? 'active' : ''}`}
+          onClick={(e) => { e.preventDefault(); onNavigate('blog'); }}
+        >
+          お茶会ブログ
+        </a>
+        <a 
+          href="#" 
+          className={`nav-item ${currentPage === 'settings' ? 'active' : ''}`}
+          onClick={(e) => { e.preventDefault(); onNavigate('settings'); }}
+        >
+          設定
+        </a>
       </div>
       <div className="nav-links">
         <div className="weather-widget">
@@ -122,16 +157,18 @@ function Calendar({ posts, onEventClick }: { posts: any[], onEventClick: (post: 
 }
 
 // --- サイドバー ---
-function Sidebar({ nextTeaParty, onEditTeaParty }: any) {
+function Sidebar({ nextTeaParty, onEditTeaParty, isAdmin }: any) {
   return (
     <div className="sidebar">
       <div className="card card-blue" style={{ position: "relative" }}>
-        <button 
-          onClick={onEditTeaParty}
-          style={{ position: "absolute", top: 16, right: 16, background: "rgba(255, 255, 255, 0.2)", padding: "4px 10px", fontSize: 12, borderRadius: 20 }}
-        >
-          ✏️ 編集
-        </button>
+        {isAdmin && (
+          <button 
+            onClick={onEditTeaParty}
+            style={{ position: "absolute", top: 16, right: 16, background: "rgba(255, 255, 255, 0.2)", padding: "4px 10px", fontSize: 12, borderRadius: 20 }}
+          >
+            ✏️ 編集
+          </button>
+        )}
 
         <p style={{ fontSize: 14, marginBottom: 8 }}>🔔 次のお茶会</p>
         <h2 style={{ fontSize: 24, marginBottom: 8 }}>{nextTeaParty.title}</h2>
@@ -159,6 +196,9 @@ function Sidebar({ nextTeaParty, onEditTeaParty }: any) {
 function App() {
   const { user, loading } = useAuth();
   const [allPosts, setAllPosts] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState<'dashboard' | 'presentation' | 'events' | 'blog' | 'settings'>('dashboard');
+  const [isAdminUser, setIsAdminUser] = useState(false);
+  const [checkingAdmin, setCheckingAdmin] = useState(true);
 
   // 初期値（Firebaseからデータが取れるまでの仮表示）
   const [nextTeaParty, setNextTeaParty] = useState({
@@ -182,10 +222,8 @@ function App() {
   const [tpGroup, setTpGroup] = useState("");
   const [isTpSubmitting, setIsTpSubmitting] = useState(false);
 
-  // ▼ 初回レンダリング時に予定とお茶会データをFirebaseから取得
+  // ▼ 初回レンダリング時に予定とお茶会データをFirebaseから取得（ログイン不要）
   useEffect(() => {
-    if (!user) return;
-
     getPosts().then(setAllPosts);
 
     getTeaPartyInfo().then(data => {
@@ -200,11 +238,46 @@ function App() {
         });
       }
     });
+  }, []);
 
+  // ▼ 管理者チェック
+  useEffect(() => {
+    if (user?.email) {
+      isAdmin(user.email).then(result => {
+        setIsAdminUser(result);
+        setCheckingAdmin(false);
+      });
+    } else {
+      setIsAdminUser(false);
+      setCheckingAdmin(false);
+    }
   }, [user]);
 
-  const handleOpenAdd = () => { setEditId(null); setTitle(""); setDate(""); setContent(""); setIsModalOpen(true); };
-  const handleOpenEdit = (post: any) => { setEditId(post.id); setTitle(post.title); setDate(post.date || ""); setContent(post.content || ""); setIsModalOpen(true); };
+  const handleOpenAdd = () => {
+    if (!user) {
+      alert("予定を追加するにはログインが必要です");
+      setCurrentPage('settings');
+      return;
+    }
+    if (!isAdminUser) {
+      alert("予定を追加するには管理者権限が必要です");
+      return;
+    }
+    setEditId(null); setTitle(""); setDate(""); setContent(""); setIsModalOpen(true);
+  };
+  
+  const handleOpenEdit = (post: any) => {
+    if (!user) {
+      alert("予定を編集するにはログインが必要です");
+      setCurrentPage('settings');
+      return;
+    }
+    if (!isAdminUser) {
+      alert("予定を編集するには管理者権限が必要です");
+      return;
+    }
+    setEditId(post.id); setTitle(post.title); setDate(post.date || ""); setContent(post.content || ""); setIsModalOpen(true);
+  };
 
   const handleSaveSchedule = async () => {
     if (!title || !date) return alert("タイトルと日付を入力してください");
@@ -228,6 +301,15 @@ function App() {
   };
 
   const handleOpenTeaPartyEdit = () => {
+    if (!user) {
+      alert("お茶会情報を編集するにはログインが必要です");
+      setCurrentPage('settings');
+      return;
+    }
+    if (!isAdminUser) {
+      alert("お茶会情報を編集するには管理者権限が必要です");
+      return;
+    }
     setTpTitle(nextTeaParty.title);
     setTpDatetime(nextTeaParty.datetime);
     setTpLocation(nextTeaParty.location);
@@ -264,9 +346,50 @@ function App() {
 
   if (loading) return <p>読み込み中...</p>;
 
+  // 設定ページの表示
+  if (currentPage === 'settings') {
+    return (
+      <div>
+        <Navbar currentPage={currentPage} onNavigate={setCurrentPage} />
+        <Settings onBackToDashboard={() => setCurrentPage('dashboard')} />
+      </div>
+    );
+  }
+
+  // 発表スケジューラーページの表示
+  if (currentPage === 'presentation') {
+    return (
+      <div>
+        <Navbar currentPage={currentPage} onNavigate={setCurrentPage} />
+        <PresentationScheduler onBackToDashboard={() => setCurrentPage('dashboard')} />
+      </div>
+    );
+  }
+
+  // イベントページの表示
+  if (currentPage === 'events') {
+    return (
+      <div>
+        <Navbar currentPage={currentPage} onNavigate={setCurrentPage} />
+        <Events onBackToDashboard={() => setCurrentPage('dashboard')} />
+      </div>
+    );
+  }
+
+  // お茶会ブログページの表示
+  if (currentPage === 'blog') {
+    return (
+      <div>
+        <Navbar currentPage={currentPage} onNavigate={setCurrentPage} />
+        <TeaPartyBlog onBackToDashboard={() => setCurrentPage('dashboard')} />
+      </div>
+    );
+  }
+
+  // ダッシュボードの表示
   return (
     <div>
-      <Navbar />
+      <Navbar currentPage={currentPage} onNavigate={setCurrentPage} />
       <div className="dashboard-container">
         <div className="header-actions">
           <div>
@@ -274,10 +397,10 @@ function App() {
             <p style={{ color: "#6b7280", fontSize: 14 }}>研究室スケジュールの一元管理</p>
           </div>
           <div style={{ display: "flex", gap: 12 }}>
-          {user ? (
+          {user && isAdminUser && (
             <>
               <div style={{ display: "flex", alignItems: "center", marginRight: 16, fontSize: 14 }}>
-                👤 {user.displayName}
+                👤 {user.email}
               </div>
 
               <button onClick={handleOpenAdd}>
@@ -291,8 +414,6 @@ function App() {
                 ログアウト
               </button>
             </>
-          ) : (
-            <LoginForm />
           )}
         </div>
         </div>
@@ -301,7 +422,7 @@ function App() {
           <div className="main-content">
             <Calendar posts={allPosts} onEventClick={handleOpenEdit} />
           </div>
-          <Sidebar nextTeaParty={nextTeaParty} onEditTeaParty={handleOpenTeaPartyEdit} />
+          <Sidebar nextTeaParty={nextTeaParty} onEditTeaParty={handleOpenTeaPartyEdit} isAdmin={isAdminUser} />
         </div>
       </div>
 

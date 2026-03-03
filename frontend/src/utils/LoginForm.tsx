@@ -3,7 +3,8 @@ import { useState } from "react";
 import { auth } from "../lib/firebase";
 import {
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
+  createUserWithEmailAndPassword,
+  signOut
 } from "firebase/auth";
 
 const LAB_PASSWORD = "b1lab2026";          // ←研究室共通パスワード
@@ -28,6 +29,11 @@ export default function LoginForm() {
     setLoading(true);
 
     try {
+      // 既にログインしているユーザーがいる場合、まずログアウト
+      if (auth.currentUser) {
+        await signOut(auth);
+      }
+      
       // 既存ユーザーならログイン
       await signInWithEmailAndPassword(auth, email, FIREBASE_PASSWORD);
     } catch {
