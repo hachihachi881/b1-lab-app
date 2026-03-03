@@ -1,4 +1,8 @@
 import React from "react";
+import Container from "./layouts/Container";
+import PageHeader from "./layouts/PageHeader";
+import { BlogList, BlogPost } from "./components/blog";
+import { Card, Typography, Spacing } from "./components/common";
 
 interface TeaPartyBlogProps {
   onBackToDashboard: () => void;
@@ -6,7 +10,7 @@ interface TeaPartyBlogProps {
 
 export default function TeaPartyBlog({ onBackToDashboard }: TeaPartyBlogProps) {
   // 仮のお茶会記録データ
-  const teaPartyPosts = [
+  const teaPartyPosts: BlogPost[] = [
     {
       id: 1,
       date: "2026年2月20日",
@@ -34,105 +38,29 @@ export default function TeaPartyBlog({ onBackToDashboard }: TeaPartyBlogProps) {
   ];
 
   return (
-    <div style={{ padding: "40px 80px", maxWidth: 1200, margin: "0 auto" }}>
-      <button 
-        onClick={onBackToDashboard}
-        style={{
-          marginBottom: 24,
-          padding: "8px 16px",
-          background: "white",
-          border: "1px solid #ddd",
-          borderRadius: 6,
-          cursor: "pointer",
-          fontSize: 14
-        }}
-      >
-        ← ダッシュボードに戻る
-      </button>
+    <Container>
+      <PageHeader
+        title="お茶会ブログ"
+        description="研究室お茶会の記録と思い出"
+        icon="☕"
+        onBack={onBackToDashboard}
+      />
 
-      <h1 style={{ fontSize: 28, marginBottom: 8 }}>☕ お茶会ブログ</h1>
-      <p style={{ color: "#6b7280", fontSize: 14, marginBottom: 40 }}>
-        研究室お茶会の記録と思い出
-      </p>
+      <BlogList posts={teaPartyPosts} />
 
-      <div style={{ display: "grid", gap: 24 }}>
-        {teaPartyPosts.map(post => (
-          <div
-            key={post.id}
-            style={{
-              background: "white",
-              padding: 32,
-              borderRadius: 12,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-            }}
-          >
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <h2 style={{ fontSize: 22, color: "#111827", margin: 0 }}>
-                  {post.title}
-                </h2>
-                <span style={{
-                  padding: "4px 12px",
-                  borderRadius: 12,
-                  fontSize: 12,
-                  background: "#fef3c7",
-                  color: "#92400e",
-                  fontWeight: "500"
-                }}>
-                  {post.group}
-                </span>
-              </div>
-              <p style={{ fontSize: 14, color: "#6b7280", margin: 0 }}>
-                📅 {post.date}
-              </p>
-            </div>
-
-            <p style={{ 
-              fontSize: 15, 
-              color: "#374151", 
-              lineHeight: 1.8,
-              marginBottom: 16
-            }}>
-              {post.content}
-            </p>
-
-            <div style={{ 
-              display: "flex", 
-              justifyContent: "space-between",
-              alignItems: "center",
-              paddingTop: 16,
-              borderTop: "1px solid #f3f4f6"
-            }}>
-              <span style={{ fontSize: 13, color: "#6b7280" }}>
-                {post.photos}
-              </span>
-              <button style={{
-                padding: "6px 16px",
-                background: "#f3f4f6",
-                border: "none",
-                borderRadius: 6,
-                cursor: "pointer",
-                fontSize: 13,
-                color: "#374151"
-              }}>
-                詳細を見る →
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div style={{ 
-        marginTop: 32, 
-        padding: 20, 
-        background: "#f9fafb", 
-        borderRadius: 8,
-        textAlign: "center"
-      }}>
-        <p style={{ fontSize: 14, color: "#6b7280", margin: 0 }}>
-          💡 今後の実装予定：記事の投稿・編集機能、写真のアップロード、コメント機能など
-        </p>
-      </div>
-    </div>
+      <Spacing size="xl" direction="top">
+        <Card
+          style={{
+            background: "#f9fafb",
+            textAlign: "center"
+          }}
+          padding={20}
+        >
+          <Typography variant="caption" color="#6b7280" style={{ display: "block" }}>
+            💡 今後の実装予定：記事の投稿・編集機能、写真のアップロード、コメント機能など
+          </Typography>
+        </Card>
+      </Spacing>
+    </Container>
   );
 }
