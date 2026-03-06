@@ -6,6 +6,9 @@ import {
   createUserWithEmailAndPassword,
   signOut
 } from "firebase/auth";
+import { FirebaseError } from "../types";
+import { loginWithEmail, registerWithEmail } from "../services/authService";
+import { showErrorToUser, classifyError } from "../utils/errorHandler";
 
 export default function LoginForm() {
   const [email, setEmail] = useState("");
@@ -32,70 +35,37 @@ export default function LoginForm() {
       }
 
       // 既存ユーザーならログイン
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch {
-      // 初回なら自動作成
-      try {
-        await createUserWithEmailAndPassword(auth, email, password);
-      } catch (err: any) {
-        alert("ログイン失敗: " + err.message);
-      }
-    }
+      const loginResult = await loginWithEmail(email, password);
 
-    setLoading(false);
+      if (loginResult.error) {
+        // 初回なら自動作成を試行
+        const registerResult = await registerWithEmail(email, password);
+
+        if (registerResult.error) {
+          showErrorToUser(registerResult.error);
+        }
+      }
+    } catch (error) {
+      const appError = classifyError(error);
+      showErrorToUser(appError);
+    }
   };
 
   return (
-    <div style={{
-      padding: 24,
-      background: "white",
-      borderRadius: 12,
-      boxShadow: "0 10px 25px rgba(0,0,0,0.1)",
-      width: 300
-    }}>
-      <h3 style={{ marginBottom: 16 }}>研究室ログイン</h3>
-
+    <div>
       <input
         type="email"
-        placeholder="大学メール"
+        placeholder="大学メールアドレス"
         value={email}
         onChange={e => setEmail(e.target.value)}
-        style={{
-          width: "100%",
-          padding: 8,
-          marginBottom: 12,
-          border: "1px solid #ccc",
-          borderRadius: 6
-        }}
       />
-
       <input
         type="password"
         placeholder="パスワード"
         value={password}
         onChange={e => setPassword(e.target.value)}
-        style={{
-          width: "100%",
-          padding: 8,
-          marginBottom: 16,
-          border: "1px solid #ccc",
-          borderRadius: 6
-        }}
       />
-
-      <button
-        onClick={handleLogin}
-        disabled={loading}
-        style={{
-          width: "100%",
-          padding: 10,
-          background: "#3b82f6",
-          color: "white",
-          borderRadius: 6,
-          border: "none",
-          cursor: "pointer"
-        }}
-      >
+      <button onClick={handleLogin} disabled={loading}>
         {loading ? "ログイン中..." : "ログイン"}
       </button>
     </div>
