@@ -1,3 +1,17 @@
+/**
+ * AppLayout Component
+ * 
+ * アプリケーション全体のレイアウトを制御するメインコンポーネント
+ * ナビゲーションバー、ユーザー情報、管理者機能ボタンなど
+ * 共通のUI要素を提供し、各ページのコンテンツをラップします。
+ * 
+ * @param children - ページのメインコンテンツ
+ * @param currentPage - 現在のアクティブページ
+ * @param onNavigate - ページ遷移時のイベントハンドラー
+ * @param user - ログイン中ユーザー情報
+ * @param isAdmin - 管理者権限の有無
+ * @param onSignOut - サインアウト時のイベントハンドラー
+ */
 import React, { ReactNode } from "react";
 import Button from "../components/common/Button";
 
@@ -29,7 +43,7 @@ function Navbar({
     return (
         <nav className="navbar">
             <div className="navbar__links">
-                <h2 className="navbar__brand">🧪 B1LabApp</h2>
+                <h2 className="navbar__brand">B1LabApp</h2>
                 <a
                     href="#"
                     className={`navbar__item ${currentPage === 'dashboard' ? 'navbar__item--active' : ''}`}
@@ -42,7 +56,7 @@ function Navbar({
                     className={`navbar__item ${currentPage === 'presentation' ? 'navbar__item--active' : ''}`}
                     onClick={(e) => { e.preventDefault(); onNavigate?.('presentation'); }}
                 >
-                    発表スケジューラー
+                    発表
                 </a>
                 <a
                     href="#"
@@ -81,6 +95,7 @@ function Navbar({
                     </div>
                 )}
                 <div className="weather-widget">
+                    {/* 天気と日時の表示（外部APIと連携する予定） */}
                     <span>☁️ 13℃ 徳島</span>
                     <span style={{ marginLeft: 12, borderLeft: "1px solid #ccc", paddingLeft: 12 }}>
                         2月28日(土) 14:09

@@ -3,16 +3,16 @@ import Container from "./layouts/Container";
 import PageHeader from "./layouts/PageHeader";
 import { Typography, Card } from "./components/common";
 
-interface SettingsProps {
+interface PresentationProps {
   onBackToDashboard: () => void;
 }
 
-export default function Settings({ onBackToDashboard }: SettingsProps) {
+export default function Presentation({ onBackToDashboard }: PresentationProps) {
   return (
     <Container>
       <PageHeader
-        title="設定"
-        description="アプリケーションの設定"
+        title="発表"
+        description="研究室メンバーの発表予定を管理します"
         onBack={onBackToDashboard}
       />
 

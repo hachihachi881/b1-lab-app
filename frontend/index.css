@@ -204,50 +204,6 @@ button:hover {
   border: none;
 }
 
-/* Status Badge Component */
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: calc(var(--radius-sm) * 3);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.status-badge--done {
-  background-color: var(--color-status-done);
-  color: var(--color-secondary);
-}
-
-.status-badge--pending {
-  background-color: var(--color-status-pending);
-  color: var(--color-secondary);
-}
-
-.status-badge--default {
-  background-color: var(--color-border);
-  color: var(--color-text-sub);
-}
-
-/* Event specific badges */
-.status-badge--event-social {
-  background-color: #dbeafe;
-  color: #1e40af;
-}
-
-.status-badge--event-lecture {
-  background-color: #fce7f3;
-  color: #9f1239;
-}
-
-/* Schedule specific badges */
-.status-badge--progress {
-  background-color: var(--color-status-pending);
-  color: var(--color-secondary);
-}
-
 /* Calendar Event Labels */
 .event-label {
   font-size: var(--font-size-xs);

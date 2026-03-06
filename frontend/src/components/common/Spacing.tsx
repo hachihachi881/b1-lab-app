@@ -1,3 +1,14 @@
+/**
+ * Spacing Component
+ * 
+ * レイアウト用の余白制御コンポーネント
+ * 要素間の一貫した余白を提供し、デザインシステムの余白ルールに従って
+ * コンテンツの上下マージンを制御します。
+ * 
+ * @param size - 余白サイズ（xs, sm, md, lg, xl）
+ * @param direction - 余白の方向（top, bottom, both）
+ * @param children - 余白を適用する子要素
+ */
 import React from "react";
 
 interface SpacingProps {

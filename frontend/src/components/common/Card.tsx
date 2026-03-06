@@ -1,3 +1,14 @@
+/**
+ * Card Component
+ * 
+ * コンテンツをカード形式で表示するコンテナコンポーネント
+ * 統一された背景、角丸、シャドウを提供し、
+ * ダッシュボードやページレイアウトの基本要素として使用されます。
+ * 
+ * @param children - カード内に表示するコンテンツ
+ * @param padding - カード内の余白（デフォルト: 32px）
+ * @param style - 追加のスタイル（オプション）
+ */
 import React from "react";
 
 interface CardProps {

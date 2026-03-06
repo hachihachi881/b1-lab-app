@@ -1,3 +1,16 @@
+/**
+ * PageHeader Component
+ * 
+ * 各ページのヘッダー部分を表示するコンポーネント
+ * ページタイトル、説明文、アイコン、戻るボタンなどを
+ * 統一されたスタイルで提供します。
+ * 
+ * @param title - ページタイトル（必須）
+ * @param description - ページの説明文（オプション）
+ * @param icon - ページアイコン（絵文字など）
+ * @param onBack - 戻るボタンのイベントハンドラー
+ * @param backLabel - 戻るボタンのテキスト（デフォルト: 「← ダッシュボードに戻る」）
+ */
 import React from "react";
 import Typography from "../components/common/Typography";
 import Button from "../components/common/Button";
@@ -13,7 +26,6 @@ interface PageHeaderProps {
 export default function PageHeader({
     title,
     description,
-    icon,
     onBack,
     backLabel = "← ダッシュボードに戻る"
 }: PageHeaderProps) {
@@ -31,7 +43,6 @@ export default function PageHeader({
             )}
 
             <Typography variant="h1" margin="small">
-                {icon && <span>{icon} </span>}
                 {title}
             </Typography>
 

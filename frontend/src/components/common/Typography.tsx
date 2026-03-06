@@ -1,3 +1,15 @@
+/**
+ * Typography Component
+ * 
+ * テキスト表示用の共通コンポーネント
+ * 見出し（h1, h2, h3）、段落（p）、キャプション（caption）などの
+ * 統一されたテキストスタイルを提供します。
+ * 
+ * @param variant - テキストの種類（h1, h2, h3, p, caption）
+ * @param children - 表示するテキスト内容
+ * @param color - テキストの色（オプション）
+ * @param margin - マージンサイズ（none, small, medium, large）
+ */
 import React from "react";
 
 interface TypographyProps {

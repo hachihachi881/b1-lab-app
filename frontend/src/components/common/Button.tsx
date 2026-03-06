@@ -1,3 +1,15 @@
+/**
+ * Button Component
+ * 
+ * 統一されたデザインシステムに基づくボタンコンポーネント
+ * 様々なバリエーション（primary, secondary, outline, ghost, danger）と
+ * サイズ（sm, md, lg）をサポートし、BEMクラス名でスタイリングされます。
+ * 
+ * @param variant - ボタンのスタイル（primary, secondary, outline, ghost, danger）
+ * @param size - ボタンのサイズ（sm, md, lg）
+ * @param onClick - クリック時のイベントハンドラー
+ * @param disabled - 無効状態の制御
+ */
 import React from "react";
 
 interface ButtonProps {
