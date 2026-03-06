@@ -53,10 +53,10 @@ function Navbar({
                 </h2>
                 <a
                     href="#"
-                    className={`navbar__item ${currentPage === 'dashboard' ? 'navbar__item--active' : ''}`}
-                    onClick={(e) => { e.preventDefault(); onNavigate?.('dashboard'); }}
+                    className={`navbar__item ${currentPage === 'blog' ? 'navbar__item--active' : ''}`}
+                    onClick={(e) => { e.preventDefault(); onNavigate?.('blog'); }}
                 >
-                    ダッシュボード
+                    お茶会ブログ
                 </a>
                 <a
                     href="#"
@@ -71,13 +71,6 @@ function Navbar({
                     onClick={(e) => { e.preventDefault(); onNavigate?.('events'); }}
                 >
                     イベント
-                </a>
-                <a
-                    href="#"
-                    className={`navbar__item ${currentPage === 'blog' ? 'navbar__item--active' : ''}`}
-                    onClick={(e) => { e.preventDefault(); onNavigate?.('blog'); }}
-                >
-                    お茶会ブログ
                 </a>
                 <a
                     href="#"
