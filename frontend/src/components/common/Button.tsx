@@ -10,7 +10,7 @@
  * @param onClick - クリック時のイベントハンドラー
  * @param disabled - 無効状態の制御
  */
-import React from "react";
+import React, { forwardRef } from "react";
 
 interface ButtonProps {
     children: React.ReactNode;
@@ -23,7 +23,7 @@ interface ButtonProps {
     style?: React.CSSProperties;
 }
 
-export default function Button({
+const Button = forwardRef<HTMLButtonElement, ButtonProps>(({
     children,
     onClick,
     variant = "primary",
@@ -32,7 +32,7 @@ export default function Button({
     type = "button",
     className = "",
     style = {}
-}: ButtonProps) {
+}, ref) => {
 
     const baseClass = "button";
     const variantClass = `button--${variant}`;
@@ -42,6 +42,7 @@ export default function Button({
 
     return (
         <button
+            ref={ref}
             type={type}
             onClick={onClick}
             disabled={disabled}
@@ -51,4 +52,8 @@ export default function Button({
             {children}
         </button>
     );
-}
+});
+
+Button.displayName = "Button";
+
+export default Button;
