@@ -51,7 +51,7 @@ function App() {
           isAdmin={false}
           onSignOut={handleSignOut}
         >
-          <Presentation />
+          <Presentation onBackToDashboard={() => setCurrentPage('dashboard')} />
         </AppLayout>
       </ErrorBoundary>
     );
