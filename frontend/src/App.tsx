@@ -3,12 +3,12 @@ import { useAuth } from "./hooks/useAuth";
 import { signOut } from "firebase/auth";
 import { auth } from "./lib/firebase";
 import Settings from "./Settings";
+import Dashboard from "./Dashboard";
 import Presentation from "./Presentation";
 import Events from "./Events";
 import TeaPartyBlog from "./TeaPartyBlog";
 import AppLayout from "./layouts/AppLayout";
-import Container from "./layouts/Container";
-import { Card, Typography, ErrorBoundary, LoadingSpinner } from "./components";
+import { Card, ErrorBoundary, LoadingSpinner } from "./components";
 import "./styles/variables.css";
 import "./styles/layout.css";
 import "../index.css";
@@ -102,10 +102,7 @@ function App() {
         onSignOut={handleSignOut}
       >
         <Card>
-          <Typography variant="h1">ダッシュボード</Typography>
-          <Typography variant="body" style={{ marginTop: "var(--spacing-md)", color: "var(--color-text-sub)" }}>
-            こちらのページは各メンバーによって実装される予定です。
-          </Typography>
+          <Dashboard />
         </Card>
       </AppLayout>
     </ErrorBoundary>
