@@ -14,12 +14,13 @@
  */
 import React, { ReactNode } from "react";
 import Button from "../components/common/Button";
+import { AuthUser, PageType } from "../types";
 
 interface AppLayoutProps {
     children: ReactNode;
-    currentPage?: string;
-    onNavigate?: (page: string) => void;
-    user?: any;
+    currentPage?: PageType;
+    onNavigate?: (page: PageType) => void;
+    user?: AuthUser;
     isAdmin?: boolean;
     onAddSchedule?: () => void;
     onSignOut?: () => void;
@@ -33,9 +34,9 @@ function Navbar({
     onAddSchedule,
     onSignOut
 }: {
-    currentPage?: string;
-    onNavigate?: (page: string) => void;
-    user?: any;
+    currentPage?: PageType;
+    onNavigate?: (page: PageType) => void;
+    user?: AuthUser;
     isAdmin?: boolean;
     onAddSchedule?: () => void;
     onSignOut?: () => void;
@@ -43,8 +44,8 @@ function Navbar({
     return (
         <nav className="navbar">
             <div className="navbar__links">
-                <h2 
-                    className="navbar__brand" 
+                <h2
+                    className="navbar__brand"
                     onClick={() => onNavigate?.('dashboard')}
                     style={{ cursor: 'pointer' }}
                 >

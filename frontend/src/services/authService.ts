@@ -4,8 +4,11 @@ import { createUser } from "./usersService";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
-  signOut
+  signOut,
+  User
 } from "firebase/auth";
+import { AuthUser, ApiResponse } from "../types";
+import { safeApiCall, classifyError, logError } from "../utils/errorHandler";
 
 // export const loginWithGoogle = async () => {
 //   const provider = new GoogleAuthProvider();  //Googleの認証プロバイダを作成する
@@ -26,18 +29,24 @@ import {
 // };
 
 // ログイン
-export const loginWithEmail = async (email: string, password: string) => {
-  const res = await signInWithEmailAndPassword(auth, email, password);
-  return res.user;
+export const loginWithEmail = async (email: string, password: string): Promise<ApiResponse<User>> => {
+  return await safeApiCall(async () => {
+    const res = await signInWithEmailAndPassword(auth, email, password);
+    return res.user;
+  }, "Email Login");
 };
 
 // 新規登録（必要なら）
-export const registerWithEmail = async (email: string, password: string) => {
-  const res = await createUserWithEmailAndPassword(auth, email, password);
-  return res.user;
+export const registerWithEmail = async (email: string, password: string): Promise<ApiResponse<User>> => {
+  return await safeApiCall(async () => {
+    const res = await createUserWithEmailAndPassword(auth, email, password);
+    return res.user;
+  }, "Email Registration");
 };
 
 // ログアウト
-export const logout = async () => {
-  await signOut(auth);
+export const logout = async (): Promise<ApiResponse<void>> => {
+  return await safeApiCall(async () => {
+    await signOut(auth);
+  }, "Sign Out");
 };
