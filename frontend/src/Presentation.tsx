@@ -1,18 +1,18 @@
 import React from "react";
 import Container from "./layouts/Container";
 import PageHeader from "./layouts/PageHeader";
-import { Card, Typography } from "./components";
+import { Typography, Card } from "./components";
 
-interface EventsProps {
+interface PresentationProps {
   onBackToDashboard: () => void;
 }
 
-export default function Events({ onBackToDashboard }: EventsProps) {
+export default function Presentation({ onBackToDashboard }: PresentationProps) {
   return (
     <Container>
       <PageHeader
-        title="イベント"
-        description="研究室の各種イベント情報"
+        title="発表"
+        description="研究室メンバーの発表予定を管理します"
         onBack={onBackToDashboard}
       />
 
