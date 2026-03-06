@@ -30,7 +30,7 @@ function App() {
         <AppLayout
           currentPage={currentPage}
           onNavigate={setCurrentPage}
-          user={user}
+          user={user || undefined}
           isAdmin={false}
           onSignOut={handleSignOut}
         >
@@ -47,7 +47,7 @@ function App() {
         <AppLayout
           currentPage={currentPage}
           onNavigate={setCurrentPage}
-          user={user}
+          user={user || undefined}
           isAdmin={false}
           onSignOut={handleSignOut}
         >
@@ -64,7 +64,7 @@ function App() {
         <AppLayout
           currentPage={currentPage}
           onNavigate={setCurrentPage}
-          user={user}
+          user={user || undefined}
           isAdmin={false}
           onSignOut={handleSignOut}
         >
@@ -81,7 +81,7 @@ function App() {
         <AppLayout
           currentPage={currentPage}
           onNavigate={setCurrentPage}
-          user={user}
+          user={user || undefined}
           isAdmin={false}
           onSignOut={handleSignOut}
         >
@@ -97,7 +97,7 @@ function App() {
       <AppLayout
         currentPage={currentPage}
         onNavigate={setCurrentPage}
-        user={user}
+        user={user || undefined}
         isAdmin={false}
         onSignOut={handleSignOut}
       >

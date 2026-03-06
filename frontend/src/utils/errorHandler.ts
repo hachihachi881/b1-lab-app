@@ -1,24 +1,6 @@
 // エラーハンドリングとAPI応答の統一管理
 
-import { FirebaseError } from "../types";
-
-// エラータイプの統一定義
-export enum ErrorTypes {
-    AUTH_ERROR = "AUTH_ERROR",
-    FIRESTORE_ERROR = "FIRESTORE_ERROR",
-    NETWORK_ERROR = "NETWORK_ERROR",
-    VALIDATION_ERROR = "VALIDATION_ERROR",
-    UNKNOWN_ERROR = "UNKNOWN_ERROR"
-}
-
-// 統一エラーオブジェクト
-export interface AppError {
-    type: ErrorTypes;
-    code: string;
-    message: string;
-    originalError?: unknown;
-    timestamp: Date;
-}
+import { FirebaseError, AppError, ApiResponse, ErrorTypes } from "../types";
 
 // Firebase認証エラーの日本語化マップ
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
@@ -129,22 +111,20 @@ function isNetworkError(error: unknown): boolean {
 export async function safeApiCall<T>(
     operation: () => Promise<T>,
     context?: string
-): Promise<{ data?: T; error?: AppError }> {
+): Promise<ApiResponse<T>> {
     try {
         const data = await operation();
-        return { data };
+        return { success: true, data };
     } catch (error) {
         const appError = classifyError(error);
 
-        // コンソールログ（開発環境のみ）
-        if (process.env.NODE_ENV === 'development') {
-            console.group(`API Error${context ? ` (${context})` : ''}`);
-            console.error("Classified Error:", appError);
-            console.error("Original Error:", error);
-            console.groupEnd();
-        }
+        // コンソールログ
+        console.group(`API Error${context ? ` (${context})` : ''}`);
+        console.error("Classified Error:", appError);
+        console.error("Original Error:", error);
+        console.groupEnd();
 
-        return { error: appError };
+        return { success: false, error: appError };
     }
 }
 

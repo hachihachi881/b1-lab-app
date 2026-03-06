@@ -67,7 +67,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     color: "#856404"
                 }}>
                     <h2>予期しないエラーが発生しました</h2>
-                    {process.env.NODE_ENV === 'development' && (
+                    {import.meta.env.DEV && (
                         <details style={{ marginTop: 16, textAlign: "left" }}>
                             <summary>エラー詳細（開発モードのみ）</summary>
                             <pre style={{

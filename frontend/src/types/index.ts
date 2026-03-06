@@ -35,6 +35,23 @@ export interface FirebaseError {
     name: string;
 }
 
+// アプリケーション共通エラー型
+export enum ErrorTypes {
+    AUTH_ERROR = "AUTH_ERROR",
+    FIRESTORE_ERROR = "FIRESTORE_ERROR",
+    NETWORK_ERROR = "NETWORK_ERROR",
+    VALIDATION_ERROR = "VALIDATION_ERROR",
+    UNKNOWN_ERROR = "UNKNOWN_ERROR"
+}
+
+export interface AppError {
+    type: ErrorTypes;
+    code: string;
+    message: string;
+    originalError?: unknown;
+    timestamp: Date;
+}
+
 // ページナビゲーション型
 export type PageType = 'dashboard' | 'presentation' | 'events' | 'blog' | 'settings';
 
@@ -52,5 +69,5 @@ export interface AppLayoutProps {
 export interface ApiResponse<T> {
     success: boolean;
     data?: T;
-    error?: string;
+    error?: AppError;
 }

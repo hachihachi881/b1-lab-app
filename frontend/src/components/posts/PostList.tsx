@@ -22,7 +22,7 @@ import LoadingSpinner from "../feedback/LoadingSpinner";
 import Button from "../ui/Button";
 import Typography from "../ui/Typography";
 import Card from "../ui/Card";
-import { Post } from "../types";
+import { Post } from "../../types";
 
 interface PostListProps {
     posts: Post[];
