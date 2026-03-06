@@ -7,9 +7,6 @@ import {
   signOut
 } from "firebase/auth";
 
-const LAB_PASSWORD = "b1lab2026";          // ←研究室共通パスワード
-const FIREBASE_PASSWORD = "lab-fixed-pass"; // ←Firebase内部用固定PW
-
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -21,8 +18,8 @@ export default function LoginForm() {
       return;
     }
 
-    if (password !== LAB_PASSWORD) {
-      alert("研究室パスワードが違います");
+    if (!password) {
+      alert("パスワードを入力してください");
       return;
     }
 
@@ -33,13 +30,13 @@ export default function LoginForm() {
       if (auth.currentUser) {
         await signOut(auth);
       }
-      
+
       // 既存ユーザーならログイン
-      await signInWithEmailAndPassword(auth, email, FIREBASE_PASSWORD);
+      await signInWithEmailAndPassword(auth, email, password);
     } catch {
       // 初回なら自動作成
       try {
-        await createUserWithEmailAndPassword(auth, email, FIREBASE_PASSWORD);
+        await createUserWithEmailAndPassword(auth, email, password);
       } catch (err: any) {
         alert("ログイン失敗: " + err.message);
       }
@@ -74,7 +71,7 @@ export default function LoginForm() {
 
       <input
         type="password"
-        placeholder="研究室パスワード"
+        placeholder="パスワード"
         value={password}
         onChange={e => setPassword(e.target.value)}
         style={{
