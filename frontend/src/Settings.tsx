@@ -1,7 +1,7 @@
 import React from "react";
 import Container from "./layouts/Container";
 import PageHeader from "./layouts/PageHeader";
-import { Typography, Card } from "./components/common";
+import { Typography, Card } from "./components";
 
 interface SettingsProps {
   onBackToDashboard: () => void;

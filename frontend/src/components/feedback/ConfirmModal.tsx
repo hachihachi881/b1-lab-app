@@ -17,7 +17,7 @@
  */
 import React, { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import Button from "./Button";
+import Button from "../ui/Button";
 import LoadingSpinner from "./LoadingSpinner";
 
 interface ConfirmModalProps {

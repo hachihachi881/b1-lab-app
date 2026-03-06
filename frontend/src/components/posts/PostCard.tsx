@@ -12,10 +12,10 @@
  * @param compact - コンパクト表示モード
  */
 import React, { useState } from "react";
-import Card from "./Card";
-import Button from "./Button";
-import Typography from "./Typography";
-import ConfirmModal from "./ConfirmModal";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+import Typography from "../ui/Typography";
+import ConfirmModal from "../feedback/ConfirmModal";
 import { Post } from "../../types";
 import { timeAgo } from "../../lib/time";
 

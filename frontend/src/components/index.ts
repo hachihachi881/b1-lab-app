@@ -1,6 +1,13 @@
-// Post Components
-export { default as PostCard } from "./PostCard";
-export { default as PostList } from "./PostList";
+// Re-export all components
 
-// Re-export common components for convenience
-export * from "./common";
+// UI Components
+export * from "./ui";
+
+// Form Components  
+export * from "./forms";
+
+// Feedback Components
+export * from "./feedback";
+
+// Post Components
+export * from "./posts";

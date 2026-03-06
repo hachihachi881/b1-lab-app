@@ -12,8 +12,8 @@
  * @param backLabel - 戻るボタンのテキスト（デフォルト: 「← ダッシュボードに戻る」）
  */
 import React from "react";
-import Typography from "../components/common/Typography";
-import Button from "../components/common/Button";
+import Typography from "../components/ui/Typography";
+import Button from "../components/ui/Button";
 
 interface PageHeaderProps {
     title: string;

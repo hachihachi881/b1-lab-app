@@ -8,7 +8,7 @@ import Events from "./Events";
 import TeaPartyBlog from "./TeaPartyBlog";
 import AppLayout from "./layouts/AppLayout";
 import Container from "./layouts/Container";
-import { Card, Typography, ErrorBoundary } from "./components/common";
+import { Card, Typography, ErrorBoundary } from "./components";
 import "./styles/variables.css";
 import "./styles/layout.css";
 import "../index.css";

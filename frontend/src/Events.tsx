@@ -1,7 +1,7 @@
 import React from "react";
 import Container from "./layouts/Container";
 import PageHeader from "./layouts/PageHeader";
-import { Card, Typography } from "./components/common";
+import { Card, Typography } from "./components";
 
 interface EventsProps {
   onBackToDashboard: () => void;

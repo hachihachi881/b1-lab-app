@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Typography } from "./components/common";
+import { Card, Typography } from "./components";
 
 export default function PostForm() {
   return (

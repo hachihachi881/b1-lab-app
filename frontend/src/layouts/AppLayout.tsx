@@ -13,7 +13,7 @@
  * @param onSignOut - サインアウト時のイベントハンドラー
  */
 import React, { ReactNode } from "react";
-import Button from "../components/common/Button";
+import Button from "../components/ui/Button";
 import { AuthUser, PageType } from "../types";
 
 interface AppLayoutProps {

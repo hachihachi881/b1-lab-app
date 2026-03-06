@@ -18,10 +18,10 @@
  */
 import React from "react";
 import PostCard from "./PostCard";
-import LoadingSpinner from "./common/LoadingSpinner";
-import Button from "./common/Button";
-import Typography from "./common/Typography";
-import Card from "./common/Card";
+import LoadingSpinner from "../feedback/LoadingSpinner";
+import Button from "../ui/Button";
+import Typography from "../ui/Typography";
+import Card from "../ui/Card";
 import { Post } from "../types";
 
 interface PostListProps {
