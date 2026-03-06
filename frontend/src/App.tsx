@@ -8,7 +8,7 @@ import Events from "./Events";
 import TeaPartyBlog from "./TeaPartyBlog";
 import AppLayout from "./layouts/AppLayout";
 import Container from "./layouts/Container";
-import { Card, Typography, ErrorBoundary } from "./components";
+import { Card, Typography, ErrorBoundary, LoadingSpinner } from "./components";
 import "./styles/variables.css";
 import "./styles/layout.css";
 import "../index.css";
@@ -21,7 +21,7 @@ function App() {
     await signOut(auth);
   };
 
-  if (loading) return <p>読み込み中...</p>;
+  if (loading) return <LoadingSpinner size="lg" text="読み込み中..." overlay />;
 
   // 設定ページの表示
   if (currentPage === 'settings') {
