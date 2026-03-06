@@ -12,9 +12,25 @@
  * @param isAdmin - 管理者権限の有無
  * @param onSignOut - サインアウト時のイベントハンドラー
  */
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import Button from "../components/ui/Button";
 import { AuthUser, PageType } from "../types";
+
+const WEEKDAYS_JA = ["日", "月", "火", "水", "木", "金", "土"];
+
+function formatDateTimeJa(date: Date) {
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const weekday = WEEKDAYS_JA[date.getDay()];
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+
+    return {
+        dateText: `${month}月${day}日(${weekday})`,
+        hours,
+        minutes
+    };
+}
 
 interface AppLayoutProps {
     children: ReactNode;
@@ -41,6 +57,31 @@ function Navbar({
     onAddSchedule?: () => void;
     onSignOut?: () => void;
 }) {
+    const [now, setNow] = useState(new Date());
+    const [isColonVisible, setIsColonVisible] = useState(true);
+
+    useEffect(() => {
+        const timer = window.setInterval(() => {
+            setNow(new Date());
+        }, 1000);
+
+        return () => {
+            window.clearInterval(timer);
+        };
+    }, []);
+
+    useEffect(() => {
+        const blinkTimer = window.setInterval(() => {
+            setIsColonVisible((prev) => !prev);
+        }, 1000);
+
+        return () => {
+            window.clearInterval(blinkTimer);
+        };
+    }, []);
+
+    const formattedDateTime = formatDateTimeJa(now);
+
     return (
         <nav className="navbar">
             <div className="navbar__links">
@@ -97,8 +138,17 @@ function Navbar({
                 <div className="weather-widget">
                     {/* 天気と日時の表示（外部APIと連携する予定） */}
                     <span>☁️ 13℃ 徳島</span>
+                    {/* 日付と時間の表示 */}
                     <span style={{ marginLeft: 12, borderLeft: "1px solid #ccc", paddingLeft: 12 }}>
-                        2月28日(土) 14:09
+                        {formattedDateTime.dateText} {formattedDateTime.hours}
+                        <span
+                            style={{
+                                opacity: isColonVisible ? 1 : 0
+                            }}
+                        >
+                            :
+                        </span>
+                        {formattedDateTime.minutes}
                     </span>
                 </div>
             </div>
