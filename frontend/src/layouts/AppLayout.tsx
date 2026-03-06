@@ -43,7 +43,13 @@ function Navbar({
     return (
         <nav className="navbar">
             <div className="navbar__links">
-                <h2 className="navbar__brand">B1LabApp</h2>
+                <h2 
+                    className="navbar__brand" 
+                    onClick={() => onNavigate?.('dashboard')}
+                    style={{ cursor: 'pointer' }}
+                >
+                    B1LabApp
+                </h2>
                 <a
                     href="#"
                     className={`navbar__item ${currentPage === 'dashboard' ? 'navbar__item--active' : ''}`}
