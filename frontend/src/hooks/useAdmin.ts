@@ -9,7 +9,7 @@
  */
 import { useState, useEffect } from "react";
 import { useAuth } from "./useAuth";
-import { isAdmin as checkIsAdmin } from "../services/adminService";
+import { authGetSession } from "../services/auth/authService";
 
 interface UseAdminReturn {
     isAdmin: boolean;
@@ -26,8 +26,8 @@ export const useAdmin = (): UseAdminReturn => {
     // 管理者権限チェック関数
     const checkAdmin = async (email: string): Promise<boolean> => {
         try {
-            const adminStatus = await checkIsAdmin(email);
-            return adminStatus;
+            const session = await authGetSession();
+            return session.ok && !!session.data?.isAdmin;
         } catch (error) {
             console.error("管理者チェックエラー:", error);
             return false;

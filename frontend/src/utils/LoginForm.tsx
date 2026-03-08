@@ -6,8 +6,6 @@ import {
   createUserWithEmailAndPassword,
   signOut
 } from "firebase/auth";
-import { FirebaseError } from "../types";
-import { loginWithEmail, registerWithEmail } from "../services/authService";
 import { showErrorToUser, classifyError } from "../utils/errorHandler";
 
 export default function LoginForm() {
@@ -35,15 +33,11 @@ export default function LoginForm() {
       }
 
       // 既存ユーザーならログイン
-      const loginResult = await loginWithEmail(email, password);
-
-      if (loginResult.error) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch {
         // 初回なら自動作成を試行
-        const registerResult = await registerWithEmail(email, password);
-
-        if (registerResult.error) {
-          showErrorToUser(registerResult.error);
-        }
+        await createUserWithEmailAndPassword(auth, email, password);
       }
     } catch (error) {
       const appError = classifyError(error);
