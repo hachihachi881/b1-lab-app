@@ -9,6 +9,7 @@ import Events from "./Events";
 import TeaPartyBlog from "./TeaPartyBlog";
 import AppLayout from "./layouts/AppLayout";
 import { Card, ErrorBoundary, LoadingSpinner } from "./components";
+import LoginForm from "./utils/LoginForm";
 import "./styles/variables.css";
 import "./styles/layout.css";
 import "../index.css";
@@ -22,6 +23,8 @@ function App() {
   };
 
   if (loading) return <LoadingSpinner size="lg" text="読み込み中..." overlay />;
+
+  if (!user) return <LoginForm />;
 
   // 設定ページの表示
   if (currentPage === 'settings') {

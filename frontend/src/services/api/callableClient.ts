@@ -1,7 +1,5 @@
-import "../../lib/firebase";
-import { getFunctions, httpsCallable } from "firebase/functions";
-
-const functions = getFunctions();
+import { functions } from "../../lib/firebase";
+import { httpsCallable } from "firebase/functions";
 
 export const callFunction = async <TReq, TRes>(
     functionName: string,
