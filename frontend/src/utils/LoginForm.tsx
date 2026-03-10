@@ -70,6 +70,11 @@ export default function LoginForm() {
     cursor: 'pointer'
   };
 
+  const handleForgotPassword = () => {
+    // TODO: パスワードリセット処理をここに実装！
+    alert("どんまいw");
+  };
+
   const handleLogin = async () => {
     if (!email.endsWith("@tokushima-u.ac.jp")) {
       alert("大学メールのみログインできます");
@@ -134,7 +139,7 @@ export default function LoginForm() {
           >
             {loading ? "ログイン中..." : "ログイン"}
           </button>
-          <div style={linkStyle}>
+          <div style={linkStyle} onClick={handleForgotPassword}>
             パスワードを忘れた場合
           </div>
         </div>
