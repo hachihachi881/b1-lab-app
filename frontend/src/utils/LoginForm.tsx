@@ -75,6 +75,11 @@ export default function LoginForm() {
     alert("どんまいw");
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleLogin();
+  };
+
   const handleLogin = async () => {
     if (!email.endsWith("@tokushima-u.ac.jp")) {
       alert("大学メールのみログインできます");
@@ -114,7 +119,7 @@ export default function LoginForm() {
   return (
     <AppLayout loginMode>
       <div style={containerStyle}>
-        <div style={cardStyle}>
+        <form style={cardStyle} onSubmit={handleSubmit}>
           <div style={logoStyle}>
             B1LabApp
           </div>
@@ -133,7 +138,7 @@ export default function LoginForm() {
             style={inputStyle}
           />
           <button
-            onClick={handleLogin}
+            type="submit"
             disabled={loading}
             style={buttonStyle}
           >
@@ -142,7 +147,7 @@ export default function LoginForm() {
           <div style={linkStyle} onClick={handleForgotPassword}>
             パスワードを忘れた場合
           </div>
-        </div>
+        </form>
       </div>
     </AppLayout>
   );
