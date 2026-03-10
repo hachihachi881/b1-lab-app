@@ -201,86 +201,84 @@ function Navbar({
       </div>
       <div className="navbar__links">
         {!loginMode && (
-          <>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
+            {/* 天気・日時表示: 全ログイン済みユーザーに表示 */}
+            <div className="weather-widget">
+              {/* 天気と日時の表示（外部APIと連携する予定） */}
+              <span>☁️ 13℃ 徳島</span>
+              {/* 日付と時間の表示 */}
+              <span style={{ marginLeft: 12, borderLeft: "1px solid #ccc", paddingLeft: 12 }}>
+                {formattedDateTime.dateText} {formattedDateTime.hours}
+                <span
+                  style={{
+                    opacity: isColonVisible ? 1 : 0
+                  }}
+                >
+                  :
+                </span>
+                {formattedDateTime.minutes}
+              </span>
+            </div>
+
+            {/* 新規投稿ボタン: 権限を持つユーザーのみ */}
             {user && isAdmin && (
-              <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-md)" }}>
-                {/* 天気・日時表示 */}
-                <div className="weather-widget">
-                  {/* 天気と日時の表示（外部APIと連携する予定） */}
-                  <span>☁️ 13℃ 徳島</span>
-                  {/* 日付と時間の表示 */}
-                  <span style={{ marginLeft: 12, borderLeft: "1px solid #ccc", paddingLeft: 12 }}>
-                    {formattedDateTime.dateText} {formattedDateTime.hours}
-                    <span
-                      style={{
-                        opacity: isColonVisible ? 1 : 0
-                      }}
-                    >
-                      :
-                    </span>
-                    {formattedDateTime.minutes}
-                  </span>
-                </div>
+              <div className="dropdown" ref={addMenuRef}>
+                <button
+                  className="add-button"
+                  onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
+                  aria-label="予定を追加"
+                >
+                  <span className="plus-icon">＋</span>
+                  <span className="chevron-icon">▼</span>
+                </button>
 
-                {/* 予定追加ドロップダウン */}
-                <div className="dropdown" ref={addMenuRef}>
-                  <button
-                    className="add-button"
-                    onClick={() => setIsAddMenuOpen(!isAddMenuOpen)}
-                    aria-label="予定を追加"
-                  >
-                    <span className="plus-icon">＋</span>
-                    <span className="chevron-icon">▼</span>
-                  </button>
-
-                  {isAddMenuOpen && (
-                    <div className="dropdown-menu">
-                      {addMenuItems.map((item) => (
-                        <button
-                          key={item.page}
-                          className="dropdown-item"
-                          onClick={() => {
-                            onNavigate?.(item.page);
-                            setIsAddMenuOpen(false);
-                          }}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* ユーザーアバタードロップダウン */}
-                <div className="dropdown" ref={userMenuRef}>
-                  <button
-                    className="avatar-button"
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    aria-label="ユーザーメニュー"
-                  >
-                    <span className="avatar-icon">👤</span>
-                  </button>
-
-                  {isUserMenuOpen && (
-                    <div className="dropdown-menu dropdown-menu--account">
-                      <div className="dropdown-user-info">
-                        {user.email}
-                      </div>
+                {isAddMenuOpen && (
+                  <div className="dropdown-menu">
+                    {addMenuItems.map((item) => (
                       <button
-                        className="dropdown-item dropdown-item--danger"
+                        key={item.page}
+                        className="dropdown-item"
                         onClick={() => {
-                          onSignOut?.();
-                          setIsUserMenuOpen(false);
+                          onNavigate?.(item.page);
+                          setIsAddMenuOpen(false);
                         }}
                       >
-                        ログアウト
+                        {item.label}
                       </button>
-                    </div>
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-          </>
+
+            {/* アカウントアイコン: 全ログイン済みユーザーに表示 */}
+            <div className="dropdown" ref={userMenuRef}>
+              <button
+                className="avatar-button"
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                aria-label="ユーザーメニュー"
+              >
+                <span className="avatar-icon">👤</span>
+              </button>
+
+              {isUserMenuOpen && (
+                <div className="dropdown-menu dropdown-menu--account">
+                  <div className="dropdown-user-info">
+                    {user?.email}
+                  </div>
+                  <button
+                    className="dropdown-item dropdown-item--danger"
+                    onClick={() => {
+                      onSignOut?.();
+                      setIsUserMenuOpen(false);
+                    }}
+                  >
+                    ログアウト
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         )}
       </div>
     </nav>
