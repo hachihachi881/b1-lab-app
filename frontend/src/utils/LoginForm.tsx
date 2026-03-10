@@ -35,13 +35,17 @@ export default function LoginForm() {
       // 既存ユーザーならログイン
       try {
         await signInWithEmailAndPassword(auth, email, password);
-      } catch {
+      } catch (loginError: any) {
+        console.error("ログインエラー:", loginError);
         // 初回なら自動作成を試行
         await createUserWithEmailAndPassword(auth, email, password);
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error("認証エラー:", error);
       const appError = classifyError(error);
       showErrorToUser(appError);
+    } finally {
+      setLoading(false);
     }
   };
 

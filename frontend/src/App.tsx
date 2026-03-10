@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useAuth } from "./hooks/useAuth";
+import { useAdmin } from "./hooks/useAdmin";
 import { signOut } from "firebase/auth";
 import { auth } from "./lib/firebase";
 import Settings from "./Settings";
@@ -16,6 +17,7 @@ import "../index.css";
 
 function App() {
   const { user, loading } = useAuth();
+  const { isAdmin } = useAdmin();
   const [currentPage, setCurrentPage] = useState<'dashboard' | 'presentation' | 'events' | 'blog' | 'settings'>('dashboard');
 
   const handleSignOut = async () => {
@@ -34,7 +36,7 @@ function App() {
           currentPage={currentPage}
           onNavigate={setCurrentPage}
           user={user || undefined}
-          isAdmin={false}
+          isAdmin={isAdmin}
           onSignOut={handleSignOut}
         >
           <Settings onBackToDashboard={() => setCurrentPage('dashboard')} />
@@ -51,7 +53,7 @@ function App() {
           currentPage={currentPage}
           onNavigate={setCurrentPage}
           user={user || undefined}
-          isAdmin={false}
+          isAdmin={isAdmin}
           onSignOut={handleSignOut}
         >
           <Presentation onBackToDashboard={() => setCurrentPage('dashboard')} />
@@ -68,7 +70,7 @@ function App() {
           currentPage={currentPage}
           onNavigate={setCurrentPage}
           user={user || undefined}
-          isAdmin={false}
+          isAdmin={isAdmin}
           onSignOut={handleSignOut}
         >
           <Events onBackToDashboard={() => setCurrentPage('dashboard')} />
@@ -85,7 +87,7 @@ function App() {
           currentPage={currentPage}
           onNavigate={setCurrentPage}
           user={user || undefined}
-          isAdmin={false}
+          isAdmin={isAdmin}
           onSignOut={handleSignOut}
         >
           <TeaPartyBlog onBackToDashboard={() => setCurrentPage('dashboard')} />
@@ -101,7 +103,7 @@ function App() {
         currentPage={currentPage}
         onNavigate={setCurrentPage}
         user={user || undefined}
-        isAdmin={false}
+        isAdmin={isAdmin}
         onSignOut={handleSignOut}
       >
         <Card>

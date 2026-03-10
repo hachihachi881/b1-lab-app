@@ -1,39 +1,39 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Skeleton rules for API-first architecture.
-    // TODO: Replace with strict member/admin checks.
+    // ヘルパー関数：ログインユーザーが管理者かどうか
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/members/$(request.auth.uid)) &&
+             get(/databases/$(database)/documents/members/$(request.auth.uid)).data.isAdmin == true;
+    }
 
+    // membersコレクション
     match /members/{uid} {
-      allow read, write: if false;
+      // 自分の情報は読み取り可能、管理者は全て読み書き可能
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if isAdmin();
     }
 
     match /presentations/{id} {
-      allow read, write: if false;
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     match /events/{id} {
-      allow read, write: if false;
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     match /teaParties/{id} {
-      allow read, write: if false;
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
 
-    match /settings/grades {
-      allow read, write: if false;
-    }
-
-    match /settings/presentationTypes {
-      allow read, write: if false;
-    }
-
-    match /settings/groups {
-      allow read, write: if false;
-    }
-
-    match /settings/colors {
-      allow read, write: if false;
+    // 設定は全員読み取り可能、管理者のみ書き込み可能
+    match /settings/{doc} {
+      allow read: if request.auth != null;
+      allow write: if isAdmin();
     }
 
     match /{document=**} {
