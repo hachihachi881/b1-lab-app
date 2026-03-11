@@ -9,12 +9,13 @@
  */
 import { useState, useEffect } from "react";
 import { useAuth } from "./useAuth";
-import { isAdmin as checkIsAdmin } from "../services/adminService";
+import { db } from "../lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 interface UseAdminReturn {
     isAdmin: boolean;
     loading: boolean;
-    checkAdmin: (email: string) => Promise<boolean>;
+    checkAdmin: (uid: string) => Promise<boolean>;
     refreshAdminStatus: () => Promise<void>;
 }
 
@@ -23,11 +24,12 @@ export const useAdmin = (): UseAdminReturn => {
     const [isAdmin, setIsAdmin] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    // 管理者権限チェック関数
-    const checkAdmin = async (email: string): Promise<boolean> => {
+    // 管理者権限チェック関数（Firestoreから直接読み取り）
+    const checkAdmin = async (uid: string): Promise<boolean> => {
         try {
-            const adminStatus = await checkIsAdmin(email);
-            return adminStatus;
+            const memberRef = doc(db, "members", uid);
+            const memberSnap = await getDoc(memberRef);
+            return memberSnap.exists() && memberSnap.data()?.isAdmin === true;
         } catch (error) {
             console.error("管理者チェックエラー:", error);
             return false;
@@ -36,7 +38,7 @@ export const useAdmin = (): UseAdminReturn => {
 
     // 現在のユーザーの管理者権限を更新
     const refreshAdminStatus = async (): Promise<void> => {
-        if (!user?.email) {
+        if (!user?.uid) {
             setIsAdmin(false);
             setLoading(false);
             return;
@@ -44,7 +46,7 @@ export const useAdmin = (): UseAdminReturn => {
 
         setLoading(true);
         try {
-            const adminStatus = await checkAdmin(user.email);
+            const adminStatus = await checkAdmin(user.uid);
             setIsAdmin(adminStatus);
         } catch (error) {
             console.error("管理者ステータス更新エラー:", error);
