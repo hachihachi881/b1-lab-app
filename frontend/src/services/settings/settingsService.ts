@@ -34,7 +34,7 @@ export const settingsGet = async (): Promise<ApiResponse<Settings>> => {
         return { ok: true, data };
     } catch (error) {
         console.error("設定取得エラー:", error);
-        return { ok: false, error: "設定の取得に失敗しました" };
+        return { ok: false, error: { code: "settings/get-failed", message: "設定の取得に失敗しました" } };
     }
 };
 
@@ -60,6 +60,6 @@ export const settingsUpdate = async (
         return { ok: true };
     } catch (error) {
         console.error("設定更新エラー:", error);
-        return { ok: false, error: "設定の更新に失敗しました" };
+        return { ok: false, error: { code: "settings/update-failed", message: "設定の更新に失敗しました" } };
     }
 };

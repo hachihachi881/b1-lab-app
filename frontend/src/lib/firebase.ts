@@ -18,9 +18,14 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const functions = getFunctions(app);
 
-// 開発中：エミュレーター設定を無効化
-// if (location.hostname === "localhost") {
-//   connectFirestoreEmulator(db, "localhost", 8080);
-//   connectAuthEmulator(auth, "http://localhost:9099");
-//   connectFunctionsEmulator(functions, "localhost", 5001);
-// }
+const useFunctionsEmulator = import.meta.env.VITE_USE_FIREBASE_FUNCTIONS_EMULATOR === "true";
+const useDataEmulators = import.meta.env.VITE_USE_FIREBASE_DATA_EMULATORS === "true";
+
+if (useFunctionsEmulator) {
+  connectFunctionsEmulator(functions, "localhost", 5001);
+}
+
+if (useDataEmulators) {
+  connectFirestoreEmulator(db, "localhost", 8080);
+  connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
+}
