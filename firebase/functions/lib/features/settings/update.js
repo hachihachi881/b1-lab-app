@@ -21,7 +21,7 @@ exports.settingsUpdate = (0, https_1.onCall)(async (request) => {
         const ctx = await (0, auth_1.getAuthContext)(request);
         (0, guard_1.requireAdmin)(ctx);
         const payload = request.data;
-        const keys = ["grades", "presentationTypes", "groups", "colors"];
+        const keys = ["grades", "presentationTypes", "groups", "groupDisplayNames", "colors"];
         await Promise.all(keys
             .filter((key) => payload[key] !== undefined)
             .map((key) => firestore_1.db.collection("settings").doc(key).set(payload[key], { merge: true })));

@@ -5,6 +5,7 @@ import {
     SettingsColors,
     SettingsGrades,
     SettingsGroups,
+    SettingsGroupDisplayNames,
     SettingsPresentationTypes,
     TeaParty,
 } from "./domain";
@@ -97,6 +98,7 @@ export type SettingsGetResponse = {
     grades: SettingsGrades;
     presentationTypes: SettingsPresentationTypes;
     groups: SettingsGroups;
+    groupDisplayNames?: SettingsGroupDisplayNames;
     colors: SettingsColors;
 };
 

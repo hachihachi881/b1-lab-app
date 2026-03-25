@@ -19,6 +19,7 @@ type SettingsPayload = {
     grades?: { items: string[] };
     presentationTypes?: { items: string[] };
     groups?: { items: string[] };
+    groupDisplayNames?: Record<string, string>;
     colors?: Record<string, unknown>;
 };
 
@@ -28,7 +29,7 @@ export const settingsUpdate = onCall(async (request) => {
         requireAdmin(ctx);
 
         const payload = request.data as SettingsPayload;
-        const keys = ["grades", "presentationTypes", "groups", "colors"] as const;
+        const keys = ["grades", "presentationTypes", "groups", "groupDisplayNames", "colors"] as const;
 
         await Promise.all(
             keys

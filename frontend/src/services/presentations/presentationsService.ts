@@ -11,6 +11,7 @@ export type PresentationSlot = {
 export type Presentation = {
     id: string;
     date: string;
+    groupName: string;
     type: string;
     slots: PresentationSlot[];
     notes?: string;

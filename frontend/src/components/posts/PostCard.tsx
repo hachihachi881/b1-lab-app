@@ -17,7 +17,6 @@ import Button from "../ui/Button";
 import Typography from "../ui/Typography";
 import ConfirmModal from "../feedback/ConfirmModal";
 import { Post } from "../../types";
-import { timeAgo } from "../../lib/time";
 
 interface PostCardProps {
     post: Post;
@@ -40,6 +39,16 @@ export default function PostCard({
 }: PostCardProps) {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    // 時間経過を表示する関数
+    const timeAgo = (date: Date) => {
+        const diff = (Date.now() - date.getTime()) / 1000;
+        if (diff < 60) return "たった今";
+        if (diff < 3600) return `${Math.floor(diff / 60)}分前`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}時間前`;
+        if (diff < 604800) return `${Math.floor(diff / 86400)}日前`;
+        return date.toLocaleDateString();
+    };
 
     // 編集・削除権限の判定
     const canEdit = currentUserId === post.uid || isAdmin;

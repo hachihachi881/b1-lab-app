@@ -23,6 +23,7 @@ export default function Settings({ onBackToDashboard }: SettingsProps) {
   const [grades, setGrades] = useState<string>("");
   const [presentationTypes, setPresentationTypes] = useState<string>("");
   const [groups, setGroups] = useState<string>("");
+  const [groupDisplayNames, setGroupDisplayNames] = useState<Record<string, string>>({});
 
   // 設定データの取得
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function Settings({ onBackToDashboard }: SettingsProps) {
         setGrades(result.data.grades.items.join(", "));
         setPresentationTypes(result.data.presentationTypes.items.join(", "));
         setGroups(result.data.groups.items.join(", "));
+        setGroupDisplayNames(result.data.groupDisplayNames || {});
       }
     } catch (error) {
       showToast("error", classifyError(error).message);
@@ -58,6 +60,7 @@ export default function Settings({ onBackToDashboard }: SettingsProps) {
         grades: { items: grades.split(",").map(s => s.trim()).filter(Boolean) },
         presentationTypes: { items: presentationTypes.split(",").map(s => s.trim()).filter(Boolean) },
         groups: { items: groups.split(",").map(s => s.trim()).filter(Boolean) },
+        groupDisplayNames,
       };
 
       const result = await settingsUpdate(payload);
@@ -78,6 +81,7 @@ export default function Settings({ onBackToDashboard }: SettingsProps) {
       setGrades(settings.grades.items.join(", "));
       setPresentationTypes(settings.presentationTypes.items.join(", "));
       setGroups(settings.groups.items.join(", "));
+      setGroupDisplayNames(settings.groupDisplayNames || {});
     }
     setEditMode(false);
   };
@@ -192,6 +196,36 @@ export default function Settings({ onBackToDashboard }: SettingsProps) {
               </Typography>
             )}
           </div>
+
+          <div style={{ marginBottom: "var(--spacing-lg)" }}>
+            <Typography variant="body" style={{ fontWeight: "bold", marginBottom: "var(--spacing-sm)" }}>
+              グループ表示名（毎週変更可能）
+            </Typography>
+            <Typography variant="caption" style={{ display: "block", marginBottom: "var(--spacing-md)", color: "var(--color-text-sub)" }}>
+              左がグループID、右に毎週の表示名を入力してください
+            </Typography>
+            {settings?.groups.items.map((groupId) => (
+              <div key={groupId} style={{ marginBottom: "var(--spacing-md)", display: "flex", gap: "var(--spacing-md)", alignItems: "center" }}>
+                <Typography variant="body" style={{ minWidth: "40px", fontWeight: "bold" }}>
+                  {groupId}：
+                </Typography>
+                {editMode && isAdmin ? (
+                  <Input
+                    type="text"
+                    value={groupDisplayNames[groupId] || ""}
+                    onChange={(value) => setGroupDisplayNames({ ...groupDisplayNames, [groupId]: value })}
+                    placeholder={`${groupId}の表示名`}
+                    style={{ flex: 1 }}
+                  />
+                ) : (
+                  <Typography variant="body" style={{ color: "var(--color-text-sub)" }}>
+                    {groupDisplayNames[groupId] || "未設定"}
+                  </Typography>
+                )}
+              </div>
+            ))}
+          </div>
+
         </div>
 
           <div style={{ display: "flex", gap: "var(--spacing-md)", justifyContent: "flex-end" }}>

@@ -44,6 +44,13 @@ export const useAdmin = (): UseAdminReturn => {
             return;
         }
 
+        // ローカル開発環境では常に管理者権限を許可
+        if (import.meta.env.VITE_USE_FIREBASE_DATA_EMULATORS === 'true') {
+            setIsAdmin(true);
+            setLoading(false);
+            return;
+        }
+
         setLoading(true);
         try {
             const adminStatus = await checkAdmin(user.uid);

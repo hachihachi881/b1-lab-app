@@ -15,6 +15,8 @@ export type SettingsGroups = {
     items: string[];
 };
 
+export type SettingsGroupDisplayNames = Record<string, string>;
+
 export type SettingsColors = {
     gradeColors?: Record<string, string>;
     groupColors?: Record<string, string>;
@@ -42,6 +44,7 @@ export type PresentationSlot = {
 
 export type Presentation = {
     date: FirestoreDate;
+    groupName: string;
     type: string;
     slots: PresentationSlot[];
     notes?: string;

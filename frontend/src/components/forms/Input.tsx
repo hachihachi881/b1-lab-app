@@ -8,7 +8,7 @@
  * @param label - 入力フィールドのラベル
  * @param value - 入力値
  * @param onChange - 値変更時のコールバック
- * @param type - 入力タイプ（text, email, password, number）
+ * @param type - 入力タイプ（text, email, password, number, date, time）
  * @param placeholder - プレースホルダーテキスト
  * @param required - 必須入力かどうか
  * @param disabled - 無効状態かどうか
@@ -22,7 +22,7 @@ interface InputProps {
     label?: string;
     value: string;
     onChange: (value: string) => void;
-    type?: "text" | "email" | "password" | "number";
+    type?: "text" | "email" | "password" | "number" | "date" | "time";
     placeholder?: string;
     required?: boolean;
     disabled?: boolean;

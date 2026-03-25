@@ -20,10 +20,22 @@ const toHttps = (e) => {
 exports.presentationsUpdate = (0, https_1.onCall)(async (request) => {
     try {
         const ctx = await (0, auth_1.getAuthContext)(request);
-        (0, guard_1.requireAdmin)(ctx);
+        // In Emulator mode, allow unauthenticated writes for development
+        const isEmulator = process.env.FIRESTORE_EMULATOR_HOST ? true : false;
+        if (!isEmulator) {
+            (0, guard_1.requireAdmin)(ctx);
+        }
         const { id, presentation } = request.data;
         if (!id || !presentation)
             throw new errors_1.ApiError("invalidArgument", "id と presentation は必須です");
+        // groupName が指定されている場合、妥当性をチェック
+        if (presentation.groupName) {
+            const groupsSnap = await firestore_2.db.collection("settings").doc("groups").get();
+            const groups = groupsSnap.data();
+            if (!groups?.items || !groups.items.includes(presentation.groupName)) {
+                throw new errors_1.ApiError("invalidArgument", `有効なグループ名ではありません: ${presentation.groupName}`);
+            }
+        }
         const ref = firestore_2.db.collection("presentations").doc(id);
         const snap = await ref.get();
         if (!snap.exists)

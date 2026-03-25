@@ -6,6 +6,7 @@ export type Settings = {
     grades: { items: string[] };
     presentationTypes: { items: string[] };
     groups: { items: string[] };
+    groupDisplayNames?: Record<string, string>;
     colors: {
         gradeColors?: Record<string, string>;
         groupColors?: Record<string, string>;
@@ -17,10 +18,11 @@ export type Settings = {
 
 export const settingsGet = async (): Promise<ApiResponse<Settings>> => {
     try {
-        const [gradesSnap, presentationTypesSnap, groupsSnap, colorsSnap] = await Promise.all([
+        const [gradesSnap, presentationTypesSnap, groupsSnap, groupDisplayNamesSnap, colorsSnap] = await Promise.all([
             getDoc(doc(db, "settings", "grades")),
             getDoc(doc(db, "settings", "presentationTypes")),
             getDoc(doc(db, "settings", "groups")),
+            getDoc(doc(db, "settings", "groupDisplayNames")),
             getDoc(doc(db, "settings", "colors")),
         ]);
 
@@ -28,6 +30,7 @@ export const settingsGet = async (): Promise<ApiResponse<Settings>> => {
             grades: gradesSnap.exists() ? gradesSnap.data() as { items: string[] } : { items: [] },
             presentationTypes: presentationTypesSnap.exists() ? presentationTypesSnap.data() as { items: string[] } : { items: [] },
             groups: groupsSnap.exists() ? groupsSnap.data() as { items: string[] } : { items: [] },
+            groupDisplayNames: groupDisplayNamesSnap.exists() ? groupDisplayNamesSnap.data() as Record<string, string> : {},
             colors: colorsSnap.exists() ? colorsSnap.data() as Settings['colors'] : {},
         };
 
@@ -51,6 +54,9 @@ export const settingsUpdate = async (
         }
         if (payload.groups) {
             promises.push(setDoc(doc(db, "settings", "groups"), payload.groups));
+        }
+        if (payload.groupDisplayNames) {
+            promises.push(setDoc(doc(db, "settings", "groupDisplayNames"), payload.groupDisplayNames));
         }
         if (payload.colors) {
             promises.push(setDoc(doc(db, "settings", "colors"), payload.colors));

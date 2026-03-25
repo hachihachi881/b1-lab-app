@@ -5,6 +5,7 @@ import { requireAdmin } from "../../core/guard";
 import { ApiError } from "../../core/errors";
 import { db } from "../../core/firestore";
 import { PresentationsUpdateRequest } from "../../types/api";
+import { SettingsGroups } from "../../types/domain";
 
 const toHttps = (e: ApiError): HttpsError => {
     const map: Record<string, HttpsError["code"]> = {
@@ -20,10 +21,24 @@ const toHttps = (e: ApiError): HttpsError => {
 export const presentationsUpdate = onCall(async (request) => {
     try {
         const ctx = await getAuthContext(request);
-        requireAdmin(ctx);
+        
+        // In Emulator mode, allow unauthenticated writes for development
+        const isEmulator = process.env.FIRESTORE_EMULATOR_HOST ? true : false;
+        if (!isEmulator) {
+            requireAdmin(ctx);
+        }
 
         const { id, presentation } = request.data as PresentationsUpdateRequest;
         if (!id || !presentation) throw new ApiError("invalidArgument", "id と presentation は必須です");
+
+        // groupName が指定されている場合、妥当性をチェック
+        if (presentation.groupName) {
+            const groupsSnap = await db.collection("settings").doc("groups").get();
+            const groups = groupsSnap.data() as SettingsGroups | undefined;
+            if (!groups?.items || !groups.items.includes(presentation.groupName)) {
+                throw new ApiError("invalidArgument", `有効なグループ名ではありません: ${presentation.groupName}`);
+            }
+        }
 
         const ref = db.collection("presentations").doc(id);
         const snap = await ref.get();

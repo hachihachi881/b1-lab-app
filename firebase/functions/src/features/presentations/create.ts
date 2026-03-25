@@ -5,6 +5,7 @@ import { requireAdmin } from "../../core/guard";
 import { ApiError } from "../../core/errors";
 import { db } from "../../core/firestore";
 import { PresentationsCreateRequest } from "../../types/api";
+import { SettingsGroups } from "../../types/domain";
 
 const toHttps = (e: ApiError): HttpsError => {
     const map: Record<string, HttpsError["code"]> = {
@@ -24,6 +25,14 @@ export const presentationsCreate = onCall(async (request) => {
 
         const { presentation } = request.data as PresentationsCreateRequest;
         if (!presentation) throw new ApiError("invalidArgument", "presentation は必須です");
+        if (!presentation.groupName) throw new ApiError("invalidArgument", "groupName は必須です");
+
+        // グループの妥当性チェック
+        const groupsSnap = await db.collection("settings").doc("groups").get();
+        const groups = groupsSnap.data() as SettingsGroups | undefined;
+        if (!groups?.items || !groups.items.includes(presentation.groupName)) {
+            throw new ApiError("invalidArgument", `有効なグループ名ではありません: ${presentation.groupName}`);
+        }
 
         const ref = await db.collection("presentations").add({
             ...presentation,
