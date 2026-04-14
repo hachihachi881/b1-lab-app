@@ -19,7 +19,7 @@ export default function TeaPartyBlog({ onBackToDashboard }: TeaPartyBlogProps) {
       <Card>
         <Typography variant="h2">実装予定</Typography>
         <Typography variant="body" style={{ marginTop: "var(--spacing-md)", color: "var(--color-text-sub)" }}>
-          こちらのページは各メンバーによって実装される予定です。
+          こちらのページは各メンバーによって実装される予定です。aaa
         </Typography>
       </Card>
     </Container>
