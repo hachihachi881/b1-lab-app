@@ -26,11 +26,13 @@ exports.presentationsCreate = (0, https_1.onCall)(async (request) => {
             throw new errors_1.ApiError("invalidArgument", "presentation は必須です");
         if (!presentation.groupName)
             throw new errors_1.ApiError("invalidArgument", "groupName は必須です");
-        // グループの妥当性チェック
-        const groupsSnap = await firestore_2.db.collection("settings").doc("groups").get();
-        const groups = groupsSnap.data();
-        if (!groups?.items || !groups.items.includes(presentation.groupName)) {
-            throw new errors_1.ApiError("invalidArgument", `有効なグループ名ではありません: ${presentation.groupName}`);
+        // グループの妥当性チェック（エミュレータではスキップ）
+        if (!process.env.FIRESTORE_EMULATOR_HOST) {
+            const groupsSnap = await firestore_2.db.collection("settings").doc("groups").get();
+            const groups = groupsSnap.data();
+            if (!groups?.items || !groups.items.includes(presentation.groupName)) {
+                throw new errors_1.ApiError("invalidArgument", `有効なグループ名ではありません: ${presentation.groupName}`);
+            }
         }
         const ref = await firestore_2.db.collection("presentations").add({
             ...presentation,

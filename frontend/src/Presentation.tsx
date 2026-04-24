@@ -155,31 +155,17 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
     void loadData();
   }, []);
 
-  useEffect(() => {
-    // presentations が変更されたら localStorage に保存
-    if (presentations.length > 0) {
-      localStorage.setItem("presentations_dev", JSON.stringify(presentations));
-    }
-  }, [presentations]);
-
-  useEffect(() => {
-    // shortPresentations が変更されたら localStorage に保存
-    if (shortPresentations.length > 0) {
-      localStorage.setItem("shortPresentations_dev", JSON.stringify(shortPresentations));
-    }
-  }, [shortPresentations]);
-
   const loadData = async () => {
     try {
       setLoading(true);
       
-      // localStorage から読み込む
-      const saved = localStorage.getItem("presentations_dev");
-      if (saved) {
-        const parsedData = JSON.parse(saved);
-        setPresentations(sortPresentationsDesc(parsedData));
-      } else {
-        // 初回は開発環境用ダミーデータ
+      // API からデータを読み込む
+      try {
+        const presentationsResponse = await presentationsList();
+        setPresentations(sortPresentationsDesc(presentationsResponse.data));
+      } catch (error) {
+        console.warn("presentationsList failed, using demo data:", error);
+        // APIが失敗した場合はダミーデータ
         const mockPresentations: PresentationItem[] = [
           {
             id: "1",
@@ -189,55 +175,32 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
             slots: [{ kind: "presenter", startAt: new Date().toISOString(), endAt: new Date(Date.now() + 3600000).toISOString() }],
             notes: ""
           },
-          {
-            id: "2",
-            date: new Date(Date.now() + 86400000).toISOString(),
-            groupName: "剣術",
-            type: "発表",
-            slots: [{ kind: "presenter", startAt: new Date(Date.now() + 86400000).toISOString(), endAt: new Date(Date.now() + 86400000 + 3600000).toISOString() }],
-            notes: ""
-          },
         ];
         setPresentations(sortPresentationsDesc(mockPresentations));
       }
-
-      // 小発表データを読み込む
-      const shortSaved = localStorage.getItem("shortPresentations_dev");
-      if (shortSaved) {
-        const shortData = JSON.parse(shortSaved);
-        setShortPresentations(shortData);
-      } else {
-        // 初回は開発環境用ダミーデータ
-        const todayKey = toDateKey(new Date());
-        const mockShortPresentations: ShortPresentation[] = [
-          {
-            id: "short1",
-            date: todayKey,
-            slots: [
-              { startAt: "09:00", name: "田中花子" },
-              { startAt: "09:10", name: "鈴木太郎" },
-              { startAt: "09:20", name: "佐藤次郎" },
-            ]
-          },
-          {
-            id: "short2",
-            date: new Date(Date.now() + 86400000).toISOString().split("T")[0],
-            slots: [
-              { startAt: "10:00", name: "山田美咲" },
-              { startAt: "10:10", name: "高橋健太" },
-            ]
-          },
+      
+      // メンバー情報を読み込む
+      try {
+        const membersResponse = await membersList();
+        setMembers(membersResponse.data);
+      } catch (error) {
+        console.warn("membersList failed, using demo data:", error);
+        const mockMembers: Member[] = [
+          { uid: "user1", name: "テストユーザー", email: "test@example.com", isAdmin: true, grade: "1", groupName: "射撃" },
         ];
-        setShortPresentations(mockShortPresentations);
+        setMembers(mockMembers);
       }
-
-      const mockMembers: Member[] = [
-        { uid: "user1", name: "山田太郎", email: "yamada@example.com", isAdmin: false, grade: "1", groupName: "射撃" },
-        { uid: "user2", name: "鈴木花子", email: "suzuki@example.com", isAdmin: false, grade: "2", groupName: "剣術" },
-      ];
-
-      setMembers(mockMembers);
-      setPresentationTypes(["輪講", "卒論", "修論"]);
+      
+      // 設定から presentation types を読み込む
+      try {
+        const settingsResponse = await settingsGet();
+        if (settingsResponse.data.presentationTypes) {
+          setPresentationTypes(settingsResponse.data.presentationTypes);
+        }
+      } catch (error) {
+        console.warn("settingsGet failed, using default types:", error);
+        setPresentationTypes(["輪講", "卒論", "修論"]);
+      }
     } catch (error) {
       showToast("error", classifyError(error).message);
     } finally {
@@ -448,45 +411,31 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
       setSaving(true);
       setFormError("");
 
+      const presentationData = {
+        date: draft.date,
+        type: draft.type || "発表",
+        groupName: draft.groupName,
+        notes: draft.notes.trim() || undefined,
+        slots: draft.startAt ? [{
+          kind: "presenter" as const,
+          startAt: draft.startAt,
+          endAt: new Date(new Date(draft.startAt).getTime() + 3600000).toISOString(),
+        }] : [],
+      };
+
       if (editingId) {
         // 既存の日程を更新
-        setPresentations((current) =>
-          current.map((item) =>
-            item.id === editingId
-              ? {
-                  ...item,
-                  date: draft.date,
-                  type: draft.type || "発表",
-                  groupName: draft.groupName,
-                  notes: draft.notes.trim() || undefined,
-                  slots: draft.startAt ? [{
-                    kind: "presenter" as const,
-                    startAt: draft.startAt,
-                    endAt: new Date(new Date(draft.startAt).getTime() + 3600000).toISOString(),
-                  }] : item.slots,
-                }
-              : item
-          )
-        );
+        await presentationsUpdate({ id: editingId, presentation: presentationData });
         showToast("success", "日程を更新しました");
       } else {
         // 新しい日程を作成
-        const newPresentation: PresentationItem = {
-          id: `${Date.now()}`,
-          date: draft.date,
-          type: draft.type || "発表",
-          groupName: draft.groupName,
-          notes: draft.notes.trim() || undefined,
-          slots: draft.startAt ? [{
-            kind: "presenter" as const,
-            startAt: draft.startAt,
-            endAt: new Date(new Date(draft.startAt).getTime() + 3600000).toISOString(),
-          }] : [],
-        };
-        setPresentations((current) => [newPresentation, ...current]);
+        await presentationsCreate({ presentation: presentationData });
         showToast("success", "日程を作成しました");
       }
 
+      // 最新データを再度読み込む
+      const updatedPresentationsResponse = await presentationsList();
+      setPresentations(sortPresentationsDesc(updatedPresentationsResponse.data));
       resetForm();
     } catch (error) {
       const message = classifyError(error).message;
@@ -502,8 +451,13 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
 
     try {
       setSaving(true);
-      setPresentations((current) => current.filter((item) => item.id !== deleteTarget.id));
+      await presentationsDelete({ id: deleteTarget.id });
       showToast("success", "日程を削除しました");
+      
+      // 最新データを再度読み込む
+      const updatedPresentationsResponse = await presentationsList();
+      setPresentations(sortPresentationsDesc(updatedPresentationsResponse.data));
+      
       setDeleteTarget(null);
       if (editingId === deleteTarget.id) {
         resetForm();

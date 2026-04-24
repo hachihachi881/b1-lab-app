@@ -31,8 +31,8 @@ export const presentationsUpdate = onCall(async (request) => {
         const { id, presentation } = request.data as PresentationsUpdateRequest;
         if (!id || !presentation) throw new ApiError("invalidArgument", "id と presentation は必須です");
 
-        // groupName が指定されている場合、妥当性をチェック
-        if (presentation.groupName) {
+        // groupName が指定されている場合、妥当性をチェック（エミュレータではスキップ）
+        if (presentation.groupName && !process.env.FIRESTORE_EMULATOR_HOST) {
             const groupsSnap = await db.collection("settings").doc("groups").get();
             const groups = groupsSnap.data() as SettingsGroups | undefined;
             if (!groups?.items || !groups.items.includes(presentation.groupName)) {

@@ -27,11 +27,13 @@ export const presentationsCreate = onCall(async (request) => {
         if (!presentation) throw new ApiError("invalidArgument", "presentation は必須です");
         if (!presentation.groupName) throw new ApiError("invalidArgument", "groupName は必須です");
 
-        // グループの妥当性チェック
-        const groupsSnap = await db.collection("settings").doc("groups").get();
-        const groups = groupsSnap.data() as SettingsGroups | undefined;
-        if (!groups?.items || !groups.items.includes(presentation.groupName)) {
-            throw new ApiError("invalidArgument", `有効なグループ名ではありません: ${presentation.groupName}`);
+        // グループの妥当性チェック（エミュレータではスキップ）
+        if (!process.env.FIRESTORE_EMULATOR_HOST) {
+            const groupsSnap = await db.collection("settings").doc("groups").get();
+            const groups = groupsSnap.data() as SettingsGroups | undefined;
+            if (!groups?.items || !groups.items.includes(presentation.groupName)) {
+                throw new ApiError("invalidArgument", `有効なグループ名ではありません: ${presentation.groupName}`);
+            }
         }
 
         const ref = await db.collection("presentations").add({

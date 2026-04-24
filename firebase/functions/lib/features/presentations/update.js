@@ -28,8 +28,8 @@ exports.presentationsUpdate = (0, https_1.onCall)(async (request) => {
         const { id, presentation } = request.data;
         if (!id || !presentation)
             throw new errors_1.ApiError("invalidArgument", "id と presentation は必須です");
-        // groupName が指定されている場合、妥当性をチェック
-        if (presentation.groupName) {
+        // groupName が指定されている場合、妥当性をチェック（エミュレータではスキップ）
+        if (presentation.groupName && !process.env.FIRESTORE_EMULATOR_HOST) {
             const groupsSnap = await firestore_2.db.collection("settings").doc("groups").get();
             const groups = groupsSnap.data();
             if (!groups?.items || !groups.items.includes(presentation.groupName)) {

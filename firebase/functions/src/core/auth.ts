@@ -9,6 +9,15 @@ export type AuthContext = {
 };
 
 export const getAuthContext = async (request: CallableRequest): Promise<AuthContext> => {
+    // エミュレータ環境では開発モード：認証なしで管理者として動作
+    if (process.env.FIRESTORE_EMULATOR_HOST) {
+        return {
+            uid: request.auth?.uid ?? "dev-user",
+            email: request.auth?.token.email ?? "dev@example.com",
+            isAdmin: true,
+        };
+    }
+
     if (!request.auth) {
         throw new ApiError("unauthenticated", "ログインが必要です");
     }
