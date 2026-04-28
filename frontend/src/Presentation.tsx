@@ -433,6 +433,7 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
         showToast("success", "日程を作成しました");
       }
 
+      
       // 最新データを再度読み込む
       const updatedPresentationsResponse = await presentationsList();
       setPresentations(sortPresentationsDesc(updatedPresentationsResponse.data));
