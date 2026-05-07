@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { addDoc, collection, deleteDoc, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import Container from "./layouts/Container";
 import PageHeader from "./layouts/PageHeader";
 import { Button, Card, ConfirmModal, Input, LoadingSpinner, TextArea, Typography, useToast } from "./components";
@@ -26,6 +27,7 @@ import {
   presentationsUpdate,
 } from "./services/presentations/presentationsService";
 import { settingsGet } from "./services/settings/settingsService";
+import { db } from "./lib/firebase";
 
 interface PresentationProps {
   onBackToDashboard: () => void;
@@ -114,13 +116,71 @@ const labelStyle: React.CSSProperties = {
   color: "var(--color-text-main)",
 };
 
+const REPORT_GROUPS = [
+  { name: "射撃", accent: "#2563eb", background: "#eff6ff" },
+  { name: "剣術", accent: "#059669", background: "#ecfdf5" },
+  { name: "格闘", accent: "#dc2626", background: "#fef2f2" },
+];
+const SHORT_PRESENTATION_TYPE = "小発表";
+const SHORT_PRESENTATION_GROUP = "小発表";
+
+function toTimeInputValue(value?: string): string {
+  if (!value) return "";
+  if (/^\d{2}:\d{2}$/.test(value)) return value;
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return `${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
+}
+
+function toPresentationStartAt(date: string, time: string): string {
+  return new Date(`${date}T${time}`).toISOString();
+}
+
+function toShortPresentations(items: PresentationItem[]): ShortPresentation[] {
+  return items
+    .filter((item) => item.type === SHORT_PRESENTATION_TYPE)
+    .map((item) => ({
+      id: item.id,
+      date: toDateKey(item.date),
+      slots: sortSlots(item.slots).map((slot) => {
+        const slotWithName = slot as typeof slot & { name?: string };
+        return {
+          startAt: toTimeInputValue(slot.startAt),
+          name: slotWithName.name ?? "",
+        };
+      }),
+    }))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+}
+
+function buildShortPresentationPayload(draft: ShortPresentationDraft) {
+  return {
+    date: draft.date,
+    type: SHORT_PRESENTATION_TYPE,
+    groupName: SHORT_PRESENTATION_GROUP,
+    slots: draft.slots.map((slot) => {
+      const startAt = toPresentationStartAt(draft.date, slot.startAt);
+      return {
+        kind: "presenter" as const,
+        startAt,
+        endAt: new Date(new Date(startAt).getTime() + 20 * 60 * 1000).toISOString(),
+        name: slot.name.trim(),
+      };
+    }),
+  };
+}
+
 function toDraft(presentation: PresentationItem): PresentationDraft {
   return {
     date: toDateKey(presentation.date),
     type: presentation.type,
     notes: presentation.notes ?? "",
     groupName: presentation.groupName,
-    startAt: presentation.slots[0]?.startAt ?? "",
+    startAt: toTimeInputValue(presentation.slots[0]?.startAt),
     slots: sortSlots(presentation.slots).map((slot, index) => ({
       localId: `${presentation.id}-${index}`,
       kind: slot.kind,
@@ -162,7 +222,9 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
       // API からデータを読み込む
       try {
         const presentationsResponse = await presentationsList();
-        setPresentations(sortPresentationsDesc(presentationsResponse.data));
+        const sortedPresentations = sortPresentationsDesc(presentationsResponse.data);
+        setPresentations(sortedPresentations);
+        setShortPresentations(toShortPresentations(sortedPresentations));
       } catch (error) {
         console.warn("presentationsList failed, using demo data:", error);
         // APIが失敗した場合はダミーデータ
@@ -177,6 +239,7 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
           },
         ];
         setPresentations(sortPresentationsDesc(mockPresentations));
+        setShortPresentations([]);
       }
       
       // メンバー情報を読み込む
@@ -195,7 +258,7 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
       try {
         const settingsResponse = await settingsGet();
         if (settingsResponse.data.presentationTypes) {
-          setPresentationTypes(settingsResponse.data.presentationTypes);
+          setPresentationTypes(settingsResponse.data.presentationTypes.items);
         }
       } catch (error) {
         console.warn("settingsGet failed, using default types:", error);
@@ -353,8 +416,13 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
     try {
       setSaving(true);
       setShortFormError("");
+      const shortPresentationData = buildShortPresentationPayload(shortDraft);
 
       if (shortEditingId) {
+        await updateDoc(doc(db, "presentations", shortEditingId), {
+          ...shortPresentationData,
+          updatedAt: serverTimestamp(),
+        });
         // 既存を更新
         setShortPresentations((current) =>
           current.map((item) =>
@@ -369,10 +437,14 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
         );
         showToast("success", "小発表を更新しました");
       } else {
+        const docRef = await addDoc(collection(db, "presentations"), {
+          ...shortPresentationData,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
         // 新規作成
-        const newId = `short-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         const newPresentation: ShortPresentation = {
-          id: newId,
+          id: docRef.id,
           date: shortDraft.date,
           slots: shortDraft.slots,
         };
@@ -381,15 +453,27 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
       }
 
       resetShortForm();
+    } catch (error) {
+      const message = classifyError(error).message;
+      setShortFormError(message);
+      showToast("error", message);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleShortDelete = (presentation: ShortPresentation) => {
-    setShortPresentations((current) => current.filter((item) => item.id !== presentation.id));
-    setShortDeleteTarget(null);
-    showToast("success", "小発表を削除しました");
+  const handleShortDelete = async (presentation: ShortPresentation) => {
+    try {
+      setSaving(true);
+      await deleteDoc(doc(db, "presentations", presentation.id));
+      setShortPresentations((current) => current.filter((item) => item.id !== presentation.id));
+      setShortDeleteTarget(null);
+      showToast("success", "小発表を削除しました");
+    } catch (error) {
+      showToast("error", classifyError(error).message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const validateDraft = (): string | null => {
@@ -411,15 +495,17 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
       setSaving(true);
       setFormError("");
 
+      const startAt = draft.startAt ? toPresentationStartAt(draft.date, draft.startAt) : "";
+
       const presentationData = {
         date: draft.date,
         type: draft.type || "発表",
         groupName: draft.groupName,
         notes: draft.notes.trim() || undefined,
-        slots: draft.startAt ? [{
+        slots: startAt ? [{
           kind: "presenter" as const,
-          startAt: draft.startAt,
-          endAt: new Date(new Date(draft.startAt).getTime() + 3600000).toISOString(),
+          startAt,
+          endAt: new Date(new Date(startAt).getTime() + 3600000).toISOString(),
         }] : [],
       };
 
@@ -436,7 +522,9 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
       
       // 最新データを再度読み込む
       const updatedPresentationsResponse = await presentationsList();
-      setPresentations(sortPresentationsDesc(updatedPresentationsResponse.data));
+      const updatedPresentations = sortPresentationsDesc(updatedPresentationsResponse.data);
+      setPresentations(updatedPresentations);
+      setShortPresentations(toShortPresentations(updatedPresentations));
       resetForm();
     } catch (error) {
       const message = classifyError(error).message;
@@ -457,7 +545,9 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
       
       // 最新データを再度読み込む
       const updatedPresentationsResponse = await presentationsList();
-      setPresentations(sortPresentationsDesc(updatedPresentationsResponse.data));
+      const updatedPresentations = sortPresentationsDesc(updatedPresentationsResponse.data);
+      setPresentations(updatedPresentations);
+      setShortPresentations(toShortPresentations(updatedPresentations));
       
       setDeleteTarget(null);
       if (editingId === deleteTarget.id) {
@@ -481,53 +571,87 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
         <LoadingSpinner text="データを読み込み中..." />
       ) : (
         <>
-          <div style={{ marginBottom: "var(--spacing-lg)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ marginBottom: "var(--spacing-lg)", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "var(--spacing-md)", flexWrap: "wrap" }}>
             <div>
-              <Typography variant="h2" style={{ marginBottom: 0 }}>報告会</Typography>
+              <Typography variant="h2" style={{ marginBottom: "var(--spacing-xs)" }}>報告会</Typography>
+              <Typography variant="body" style={{ marginBottom: 0, color: "var(--color-text-sub)" }}>
+                グループごとの日付と時間を確認できます
+              </Typography>
             </div>
             {isAdmin && (
               <Button onClick={openCreateForm}>新しい日程を作成</Button>
             )}
           </div>
 
-          <Card>
-            <div style={{ display: "grid", gap: "var(--spacing-lg)" }}>
-              {["射撃", "剣術", "格闘"].map((groupName) => {
-                const groupPresentations = presentations.filter((p) => p.groupName === groupName).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: "var(--spacing-lg)", marginBottom: "var(--spacing-lg)" }}>
+            {REPORT_GROUPS.map((group) => {
+              const groupPresentations = presentations
+                .filter((p) => p.groupName === group.name)
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
                 
-                return (
-                  <div key={groupName}>
-                    <Typography variant="h3" style={{ marginBottom: "var(--spacing-md)" }}>{groupName}</Typography>
-                    
-                    <div style={{ display: "grid", gap: "var(--spacing-sm)" }}>
-                      {groupPresentations.length === 0 && (
-                        <Typography variant="body" style={{ color: "var(--color-text-sub)" }}>
+              return (
+                <Card key={group.name} padding={24} style={{ border: `1px solid ${group.accent}22`, boxShadow: "0 8px 24px rgba(15, 23, 42, 0.08)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "var(--spacing-md)", marginBottom: "var(--spacing-md)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--spacing-sm)" }}>
+                      <span aria-hidden="true" style={{ width: 10, height: 36, borderRadius: 999, background: group.accent, display: "inline-block" }} />
+                      <div>
+                        <Typography variant="h3" style={{ marginBottom: 2 }}>{group.name}</Typography>
+                        <Typography variant="caption" style={{ marginBottom: 0, color: "var(--color-text-sub)" }}>
+                          {groupPresentations.length} 件登録
+                        </Typography>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: "grid", gap: "var(--spacing-sm)" }}>
+                    {groupPresentations.length === 0 && (
+                      <div style={{ padding: "var(--spacing-md)", borderRadius: "var(--radius-button)", background: group.background, border: `1px dashed ${group.accent}55` }}>
+                        <Typography variant="body" style={{ color: "var(--color-text-sub)", marginBottom: 0 }}>
                           報告会の日程がまだ登録されていません
                         </Typography>
-                      )}
-                      
-                      {groupPresentations.map((item) => (
-                        <div key={item.id} style={{ padding: "var(--spacing-md)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-button)", backgroundColor: "#f8fafc", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "var(--spacing-md)" }}>
-                          <div>
-                            <Typography variant="h3" style={{ marginBottom: "var(--spacing-xs)" }}>
-                              {new Date(item.date).toLocaleDateString("ja-JP", { month: "short", day: "numeric" })}
-                              {item.slots[0]?.startAt && ` ${new Date(item.slots[0].startAt).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" })}`}
-                            </Typography>
-                            <Typography variant="body" style={{ color: "var(--color-text-sub)", marginBottom: 0 }}>
+                      </div>
+                    )}
+
+                    {groupPresentations.map((item) => {
+                      const timeRange = getPresentationTimeRangeLabel(item);
+
+                      return (
+                        <div key={item.id} style={{ padding: "var(--spacing-md)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-button)", backgroundColor: "#ffffff", display: "grid", gap: "var(--spacing-sm)" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "var(--spacing-md)" }}>
+                            <div style={{ minWidth: 0 }}>
+                              <Typography variant="caption" style={{ display: "block", marginBottom: 4, color: "var(--color-text-sub)", fontWeight: 600 }}>
+                                日付
+                              </Typography>
+                              <Typography variant="h3" style={{ marginBottom: 0, color: "#111827" }}>
+                                {formatPresentationDate(item.date)}
+                              </Typography>
+                            </div>
+                            {isAdmin && (
+                              <Button variant="outline" size="sm" onClick={() => openEditForm(item)}>編集</Button>
+                            )}
+                          </div>
+
+                          <div style={{ display: "grid", gridTemplateColumns: "minmax(110px, 1fr) minmax(72px, auto)", gap: "var(--spacing-sm)", alignItems: "center", padding: "var(--spacing-sm) var(--spacing-md)", borderRadius: "var(--radius-button)", background: group.background }}>
+                            <div>
+                              <Typography variant="caption" style={{ display: "block", marginBottom: 2, color: "var(--color-text-sub)", fontWeight: 600 }}>
+                                時間
+                              </Typography>
+                              <Typography variant="body" style={{ marginBottom: 0, color: group.accent, fontWeight: 700 }}>
+                                {timeRange}
+                              </Typography>
+                            </div>
+                            <Typography variant="caption" style={{ justifySelf: "end", marginBottom: 0, color: "var(--color-text-sub)" }}>
                               {item.slots.length}枠
                             </Typography>
                           </div>
-                          {isAdmin && (
-                            <Button variant="outline" size="sm" onClick={() => openEditForm(item)}>編集</Button>
-                          )}
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-          </Card>
+                </Card>
+              );
+            })}
+          </div>
 
           {formOpen && (
             <Card style={{ marginTop: "var(--spacing-lg)" }}>
@@ -562,7 +686,7 @@ export default function Presentation({ onBackToDashboard }: PresentationProps) {
                 <label style={{ display: "flex", flexDirection: "column", gap: "var(--spacing-xs)" }}>
                   <Typography variant="body" style={{ fontWeight: 600 }}>開始時刻</Typography>
                   <input
-                    type="datetime-local"
+                    type="time"
                     value={draft.startAt}
                     onChange={(event) => updateDraft("startAt", event.target.value)}
                     style={{ padding: "var(--spacing-md)", border: "1px solid var(--color-border)", borderRadius: "var(--radius-button)" }}
