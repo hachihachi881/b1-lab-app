@@ -11,3 +11,6 @@ export * from "./feedback";
 
 // Post Components
 export * from "./posts";
+
+// Tea Party Components
+export * from "./teaParty";
